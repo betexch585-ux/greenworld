@@ -4,6 +4,7 @@ export interface User {
   id: string;
   full_name: string;
   username: string;
+  password?: string;
   phone: string; // +92 format
   referral_code: string; // GW-XXXX
   referred_by?: string;

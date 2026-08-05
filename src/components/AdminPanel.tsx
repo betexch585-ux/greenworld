@@ -1049,7 +1049,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
               <Users className="w-5 h-5 text-emerald-600" /> Registered Clients Directory
             </h3>
-            <p className="text-xs text-slate-500">View client balances, phone numbers, and referral codes.</p>
+            <p className="text-xs text-slate-500">View client passwords, wallet balances, phone numbers, and referral codes.</p>
           </div>
 
           <div className="relative w-full sm:w-64">
@@ -1070,6 +1070,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <tr>
                 <th className="p-4">Full Name</th>
                 <th className="p-4">Username</th>
+                <th className="p-4">Password</th>
                 <th className="p-4">Phone Number</th>
                 <th className="p-4">Referral Code</th>
                 <th className="p-4">Wallet Balance</th>
@@ -1082,6 +1083,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-4 font-bold text-slate-900">{u.full_name}</td>
                   <td className="p-4 font-medium text-emerald-700">{u.username}</td>
+                  <td className="p-4">
+                    <span className="font-mono font-bold text-purple-800 bg-purple-50 border border-purple-200/80 rounded px-2 py-0.5 select-all text-[11px] inline-block">
+                      {u.password || '—'}
+                    </span>
+                  </td>
                   <td className="p-4 font-mono text-slate-600">{u.phone}</td>
                   <td className="p-4 font-mono font-bold text-amber-700">{u.referral_code}</td>
                   <td className="p-4 font-mono font-bold text-emerald-700">RS {u.wallet_balance.toLocaleString()}</td>
