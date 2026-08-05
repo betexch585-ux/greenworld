@@ -52,27 +52,14 @@ function AdminLoginGate({ onLoginSuccess }: { onLoginSuccess: (user: User) => vo
         console.warn('[Admin API Login Fallback]:', apiErr.message);
       }
 
-      // Fallback for static client-side or Netlify deployment
+      // Fallback for static client-side deployment
       if (!userResult) {
         const cleanUser = username.trim().toLowerCase();
         const validAdminUsers = ['admin', 'greenworld2026', 'owner'];
-        const validAdminPasses = [
-          'satkartar1.',
-          'satkartar1',
-          'satkartar',
-          'admin',
-          'admin123',
-          'globalworld2026',
-          '123456',
-          'greenworld2026',
-          'globalworld',
-        ];
 
         if (
           validAdminUsers.includes(cleanUser) &&
-          (validAdminPasses.includes(password.trim().toLowerCase()) ||
-            password === 'Satkartar1.' ||
-            password === 'Globalworld2026')
+          (password === 'Satkartar1.' || password.trim() === 'Satkartar1.')
         ) {
           userResult = {
             id: 'user-admin',

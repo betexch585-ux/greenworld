@@ -51,6 +51,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   onBuyPackage,
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [activeTab, setActiveTab] = useState<'packages' | 'my_investments' | 'referrals' | 'history'>('packages');
 
   const referralLink = `${window.location.origin}?ref=${user.referral_code}`;
@@ -65,12 +66,18 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
+  const handleCopyCodeOnly = () => {
+    navigator.clipboard.writeText(user.referral_code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   const pendingWithdrawalsList = withdrawals.filter((w) => w.status === 'PENDING');
 
   return (
     <div className="space-y-5 sm:space-y-8 animate-fade-in pb-12">
       {/* Welcome Back Note Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-sm border border-emerald-100 p-4 sm:px-6 rounded-2xl shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/80 backdrop-blur-sm border border-emerald-100 p-4 sm:px-6 rounded-2xl shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-100/80 border border-emerald-200/60 flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5 text-emerald-700" />
@@ -84,9 +91,24 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             </p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Live Solar Node Connected</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold text-emerald-950">
+            <span className="text-emerald-800 font-bold">Referral Code:</span>
+            <span className="font-mono font-black text-sm text-emerald-900 bg-emerald-200/90 px-2.5 py-0.5 rounded-md border border-emerald-300 tracking-wider">
+              {user.referral_code}
+            </span>
+            <button
+              onClick={handleCopyCodeOnly}
+              title="Copy Referral Code"
+              className="p-1 hover:bg-emerald-200/80 rounded text-emerald-800 transition-colors"
+            >
+              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+          <div className="hidden lg:flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Live Solar Node Connected</span>
+          </div>
         </div>
       </div>
 
@@ -209,31 +231,49 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
       {/* Referral Network Card (Natural Tones) */}
       <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; 3% Passive Yield
+        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between flex-wrap gap-2">
+          <span className="flex items-center gap-2">
+            <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; 3% Passive Yield
+          </span>
+          <span className="text-xs font-bold text-emerald-900 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-200">
+            Referral Code: <strong className="font-mono font-black text-emerald-950 text-sm tracking-wider">{user.referral_code}</strong>
+          </span>
         </h3>
 
-        <div className="bg-emerald-50 rounded-2xl p-5 mb-4 border border-emerald-100">
-          <p className="text-[10px] uppercase font-bold text-emerald-800 mb-2 tracking-widest">
-            My Unique Link (10% Cash + 3% Daily Yield Commission)
-          </p>
-          <div className="flex items-center justify-between gap-3 bg-white rounded-xl p-3 border border-emerald-200">
-            <span className="text-xs font-mono font-bold text-emerald-800 truncate">
-              {referralLink}
-            </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-emerald-50/90 rounded-2xl p-4 border border-emerald-200 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] uppercase font-extrabold text-emerald-800 tracking-wider">
+                Your Referral Code
+              </p>
+              <p className="text-2xl font-black font-mono text-emerald-950 tracking-widest mt-0.5">
+                {user.referral_code}
+              </p>
+            </div>
+            <button
+              onClick={handleCopyCodeOnly}
+              className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0"
+            >
+              {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              <span>{copiedCode ? 'Copied Code' : 'Copy Code'}</span>
+            </button>
+          </div>
+
+          <div className="bg-emerald-50/90 rounded-2xl p-4 border border-emerald-200 flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <p className="text-[10px] uppercase font-extrabold text-emerald-800 tracking-wider">
+                Your Referral Link
+              </p>
+              <p className="text-xs font-mono font-bold text-emerald-900 truncate mt-1">
+                {referralLink}
+              </p>
+            </div>
             <button
               onClick={handleCopyReferral}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 shadow-xs transition-all shrink-0"
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0"
             >
-              {copiedLink ? (
-                <>
-                  <Check className="w-3.5 h-3.5" /> Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" /> Copy Link
-                </>
-              )}
+              {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              <span>{copiedLink ? 'Copied Link' : 'Copy Link'}</span>
             </button>
           </div>
         </div>
@@ -529,6 +569,36 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
         {/* TAB 3: REFERRAL NETWORK */}
         {activeTab === 'referrals' && (
           <div className="space-y-6">
+            <div className="bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-md">
+              <div>
+                <p className="text-xs font-bold text-emerald-300 uppercase tracking-widest">
+                  Your Unique Referral Code
+                </p>
+                <p className="text-3xl font-black font-mono tracking-widest text-white mt-1">
+                  {user.referral_code}
+                </p>
+                <p className="text-xs text-emerald-100 mt-1 font-medium">
+                  Share your referral code to earn 10% cash bonus on deposits + 3% daily passive yield commission!
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  onClick={handleCopyCodeOnly}
+                  className="px-4 py-2.5 bg-white text-emerald-950 hover:bg-emerald-50 rounded-xl font-black text-xs flex items-center gap-1.5 shadow-sm transition-all"
+                >
+                  {copiedCode ? <Check className="w-4 h-4 text-emerald-700" /> : <Copy className="w-4 h-4 text-emerald-700" />}
+                  <span>{copiedCode ? 'Code Copied!' : 'Copy Code'}</span>
+                </button>
+                <button
+                  onClick={handleCopyReferral}
+                  className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl font-black text-xs flex items-center gap-1.5 shadow-sm transition-all border border-emerald-500"
+                >
+                  {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
                 <span className="text-xs text-slate-400 font-semibold">Direct Referrals Joined</span>

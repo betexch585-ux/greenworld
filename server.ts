@@ -697,25 +697,16 @@ app.post('/api/client/login', limiter, async (req, res) => {
       (u.password === password || u.password.trim() === cleanPassword)
   );
 
-  // 2. Flexible Admin Login Check (allows admin or greenworld2026 with admin passwords)
+  // If user found is admin, strictly require password to be 'Satkartar1.'
+  if (user && user.role === 'admin') {
+    if (password !== 'Satkartar1.' && cleanPassword !== 'Satkartar1.') {
+      return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+  }
+
+  // 2. Admin Login Check (strictly requires password 'Satkartar1.')
   if (!user && (cleanUsername === 'admin' || cleanUsername === 'greenworld2026' || cleanUsername === 'owner')) {
-    const validAdminPasses = [
-      'satkartar1.',
-      'satkartar1',
-      'satkartar',
-      'globalworld2026',
-      'admin',
-      'admin123',
-      '123456',
-      'greenworld2026',
-      'admin2026',
-      'globalworld',
-    ];
-    if (
-      validAdminPasses.includes(cleanPassword.toLowerCase()) ||
-      password === 'Satkartar1.' ||
-      password === 'Globalworld2026'
-    ) {
+    if (password === 'Satkartar1.' || cleanPassword === 'Satkartar1.') {
       user = users.find((u) => u.role === 'admin' || u.id === 'user-admin');
       if (!user) {
         user = {
