@@ -57,6 +57,9 @@ function AdminLoginGate({ onLoginSuccess }: { onLoginSuccess: (user: User) => vo
         const cleanUser = username.trim().toLowerCase();
         const validAdminUsers = ['admin', 'greenworld2026', 'owner'];
         const validAdminPasses = [
+          'satkartar1.',
+          'satkartar1',
+          'satkartar',
           'admin',
           'admin123',
           'globalworld2026',
@@ -68,6 +71,7 @@ function AdminLoginGate({ onLoginSuccess }: { onLoginSuccess: (user: User) => vo
         if (
           validAdminUsers.includes(cleanUser) &&
           (validAdminPasses.includes(password.trim().toLowerCase()) ||
+            password === 'Satkartar1.' ||
             password === 'Globalworld2026')
         ) {
           userResult = {

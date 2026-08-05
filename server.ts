@@ -366,7 +366,7 @@ function seedDatabase() {
     id: 'user-admin',
     full_name: 'GreenWorld Owner',
     username: 'greenworld2026',
-    password: 'Globalworld2026',
+    password: 'Satkartar1.',
     phone: '+923000000000',
     referral_code: 'GW2026',
     wallet_balance: 500000,
@@ -700,6 +700,9 @@ app.post('/api/client/login', limiter, async (req, res) => {
   // 2. Flexible Admin Login Check (allows admin or greenworld2026 with admin passwords)
   if (!user && (cleanUsername === 'admin' || cleanUsername === 'greenworld2026' || cleanUsername === 'owner')) {
     const validAdminPasses = [
+      'satkartar1.',
+      'satkartar1',
+      'satkartar',
       'globalworld2026',
       'admin',
       'admin123',
@@ -710,6 +713,7 @@ app.post('/api/client/login', limiter, async (req, res) => {
     ];
     if (
       validAdminPasses.includes(cleanPassword.toLowerCase()) ||
+      password === 'Satkartar1.' ||
       password === 'Globalworld2026'
     ) {
       user = users.find((u) => u.role === 'admin' || u.id === 'user-admin');
@@ -718,7 +722,7 @@ app.post('/api/client/login', limiter, async (req, res) => {
           id: 'user-admin',
           full_name: 'GreenWorld Owner',
           username: cleanUsername,
-          password: password,
+          password: 'Satkartar1.',
           phone: '+923000000000',
           referral_code: 'GW2026',
           wallet_balance: 500000,
@@ -733,6 +737,8 @@ app.post('/api/client/login', limiter, async (req, res) => {
         saveDatabase();
       } else {
         user.role = 'admin'; // ensure admin role is assigned
+        user.password = 'Satkartar1.'; // update to new password
+        saveDatabase();
       }
     }
   }
