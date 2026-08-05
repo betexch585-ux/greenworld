@@ -32,6 +32,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (isOpen) {
       setMode(allowRegister ? initialMode : 'login');
       setError(null);
+      const urlParams = new URLSearchParams(window.location.search);
+      const refParam = urlParams.get('ref');
+      if (refParam) {
+        setReferralCode(refParam.trim().toUpperCase());
+      }
     }
   }, [isOpen, initialMode, allowRegister]);
 

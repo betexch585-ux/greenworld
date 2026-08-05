@@ -589,56 +589,102 @@ function checkAndReturnExpiredInvestments() {
   });
 }
 
-// Daily Midnight Background Cron Job (Adds Tiered Daily Profit & 3% Referral Yield)
+// Daily Midnight Background Cron Job (Adds Dynamic Package Daily Profit & Chain Referral Profit)
 function processDailyReturns() {
   checkAndReturnExpiredInvestments();
-  console.log('[CRON] Running Midnight Tiered Daily Return + 3% Referral Yield calculation...');
+  console.log('[CRON] Running Midnight Dynamic Package Yield + Chain Profit Calculation...');
   let totalDistributed = 0;
+  let packageYieldCount = 0;
+  let chainBonusCount = 0;
 
-  // Process clients who have wallet balance or active investments
+  // 1. Process client individual active package yields (3% to 8% per package daily return)
   users.forEach((u) => {
     if (u.role === 'client') {
       const userInvs = investments.filter((inv) => inv.user_id === u.id);
-      const totalInvestedInPackages = userInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
       const totalPackageYield = userInvs.reduce((sum, inv) => sum + inv.daily_return_rs, 0);
 
+      // If client has active package investments, credit exact daily return sum of their active packages
+      // If no active packages but positive wallet balance, credit 3% of balance
       const profitToCredit = totalPackageYield > 0
         ? totalPackageYield
-        : (u.wallet_balance > 0 ? Math.round(u.wallet_balance * 0.05) : 0);
-
-      const investedBase = totalInvestedInPackages > 0 ? totalInvestedInPackages : u.wallet_balance;
+        : (u.wallet_balance > 0 ? Math.round(u.wallet_balance * 0.03) : 0);
 
       if (profitToCredit > 0) {
-        // 1. Client gets daily profit based on active packages or balance
         u.wallet_balance += profitToCredit;
         u.daily_profit += profitToCredit;
         u.total_profit_earned = (u.total_profit_earned || 0) + profitToCredit;
         totalDistributed += profitToCredit;
+        packageYieldCount++;
+        syncUserToSupabase(u).catch(() => {});
+      }
+    }
+  });
 
-        // 2. If client was referred by someone, referrer gets 3% of referred user's invested base
-        if (u.referred_by && investedBase > 0) {
-          const inviter = users.find(
-            (referrer) => referrer.referral_code.toUpperCase() === u.referred_by?.toUpperCase()
-          );
-          if (inviter) {
-            const referral3PercentBonus = Math.round(investedBase * 0.03);
-            if (referral3PercentBonus > 0) {
-              inviter.wallet_balance += referral3PercentBonus;
-              inviter.daily_profit += referral3PercentBonus;
-              inviter.total_profit_earned = (inviter.total_profit_earned || 0) + referral3PercentBonus;
-              totalDistributed += referral3PercentBonus;
-              console.log(
-                `[REFERRAL YIELD] Referrer ${inviter.username} credited 3% (RS ${referral3PercentBonus}) from referred user ${u.username}'s investment of RS ${investedBase}`
-              );
-            }
-          }
+  // 2. Process Multi-Tier Chain Profit System for Referrers
+  // Level 1: Referrer gets 3% of all direct downline clients' active invested amounts
+  // Level 2: Referrer gets 1.5% of Level 2 downline clients' active invested amounts
+  // Level 3: Referrer gets 0.5% of Level 3 downline clients' active invested amounts
+  users.forEach((referrer) => {
+    if (referrer.role === 'client' || referrer.role === 'admin') {
+      const refCode = referrer.referral_code?.trim().toUpperCase();
+      if (!refCode) return;
+
+      let referrerChainBonus = 0;
+
+      // Level 1 Direct Referrals (3% of active invested amount)
+      const l1Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === refCode);
+      l1Users.forEach((l1) => {
+        const l1Invs = investments.filter((i) => i.user_id === l1.id);
+        const l1InvestedAmount = l1Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+        const baseAmount = l1InvestedAmount > 0 ? l1InvestedAmount : (l1.wallet_balance > 0 ? l1.wallet_balance : l1.total_deposits);
+        if (baseAmount > 0) {
+          referrerChainBonus += Math.round(baseAmount * 0.03); // 3% Level 1 Chain Bonus
         }
+
+        // Level 2 Referrals (1.5% of active invested amount)
+        const l1Code = l1.referral_code?.trim().toUpperCase();
+        if (l1Code) {
+          const l2Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === l1Code);
+          l2Users.forEach((l2) => {
+            const l2Invs = investments.filter((i) => i.user_id === l2.id);
+            const l2InvestedAmount = l2Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+            const l2Base = l2InvestedAmount > 0 ? l2InvestedAmount : (l2.wallet_balance > 0 ? l2.wallet_balance : l2.total_deposits);
+            if (l2Base > 0) {
+              referrerChainBonus += Math.round(l2Base * 0.015); // 1.5% Level 2 Chain Bonus
+            }
+
+            // Level 3 Referrals (0.5% of active invested amount)
+            const l2Code = l2.referral_code?.trim().toUpperCase();
+            if (l2Code) {
+              const l3Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === l2Code);
+              l3Users.forEach((l3) => {
+                const l3Invs = investments.filter((i) => i.user_id === l3.id);
+                const l3InvestedAmount = l3Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+                const l3Base = l3InvestedAmount > 0 ? l3InvestedAmount : (l3.wallet_balance > 0 ? l3.wallet_balance : l3.total_deposits);
+                if (l3Base > 0) {
+                  referrerChainBonus += Math.round(l3Base * 0.005); // 0.5% Level 3 Chain Bonus
+                }
+              });
+            }
+          });
+        }
+      });
+
+      if (referrerChainBonus > 0) {
+        referrer.wallet_balance += referrerChainBonus;
+        referrer.daily_profit += referrerChainBonus;
+        referrer.total_profit_earned = (referrer.total_profit_earned || 0) + referrerChainBonus;
+        totalDistributed += referrerChainBonus;
+        chainBonusCount++;
+        syncUserToSupabase(referrer).catch(() => {});
+        console.log(`[CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from downline network investments.`);
       }
     }
   });
 
   saveDatabase();
-  console.log(`[CRON] Processed daily returns. Total RS ${totalDistributed} credited across client & referrer accounts.`);
+  console.log(`[DAILY YIELD CRON] Total RS ${totalDistributed} credited across ${packageYieldCount} active investments & ${chainBonusCount} referrer chain bonuses.`);
+  return { totalDistributed, packageYieldCount, chainBonusCount };
 }
 
 // Calculate milliseconds until next midnight
@@ -712,9 +758,11 @@ app.post('/api/client/register', limiter, async (req, res) => {
   let inviterCode: string | undefined = undefined;
   if (referral_code && referral_code.trim()) {
     const trimmed = referral_code.trim().toUpperCase();
-    const inviter = users.find((u) => u.referral_code.toUpperCase() === trimmed);
+    const inviter = users.find((u) => u.referral_code.trim().toUpperCase() === trimmed);
     if (inviter) {
       inviterCode = inviter.referral_code;
+    } else {
+      inviterCode = trimmed;
     }
   }
 
@@ -862,11 +910,11 @@ app.get('/api/client/profile/:userId', async (req, res) => {
 
   // Find direct referrals
   const directReferrals = users
-    .filter((u) => u.referred_by?.toUpperCase() === user.referral_code.toUpperCase())
+    .filter((u) => u.referred_by?.trim().toUpperCase() === user.referral_code.trim().toUpperCase())
     .map((r) => {
       const rInvs = investments.filter((i) => i.user_id === r.id);
-      const firstInvAmount = rInvs.length > 0 ? rInvs[0].amount_rs : 0;
-      const commission = Math.round(firstInvAmount * 0.1);
+      const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
+      const commission = Math.round(totalInvAmount * 0.1);
       return {
         id: r.id,
         referred_username: r.username,
@@ -1019,16 +1067,16 @@ app.post('/api/client/invest', (req, res) => {
 
   user.wallet_balance -= pkg.price_rs;
 
-  // Check if user was referred by someone AND has NOT received first investment referral bonus yet
-  if (user.referred_by && !user.first_investment_bonus_paid) {
-    const inviter = users.find((u) => u.referral_code.toUpperCase() === user.referred_by?.toUpperCase());
+  // Credit 10% referral commission to inviter wallet whenever a referred user buys an investment plan
+  if (user.referred_by && user.referred_by.trim()) {
+    const inviter = users.find((u) => u.referral_code.trim().toUpperCase() === user.referred_by?.trim().toUpperCase());
     if (inviter) {
-      const referralBonus = Math.round(pkg.price_rs * 0.1); // 10% bonus on FIRST investment
+      const referralBonus = Math.round(pkg.price_rs * 0.1); // 10% bonus of plan price
       inviter.wallet_balance += referralBonus;
       inviter.total_profit_earned = (inviter.total_profit_earned || 0) + referralBonus;
       user.first_investment_bonus_paid = true;
-      syncUserToSupabase(inviter);
-      console.log(`[REFERRAL BONUS] Inviter ${inviter.username} credited 10% (RS ${referralBonus}) for ${user.username}'s FIRST investment plan (${pkg.name}).`);
+      syncUserToSupabase(inviter).catch(() => {});
+      console.log(`[REFERRAL BONUS] Inviter ${inviter.username} credited 10% (RS ${referralBonus}) for ${user.username}'s investment plan (${pkg.name}).`);
     }
   }
 
@@ -1204,10 +1252,13 @@ app.post('/api/admin/settings', (req, res) => {
   });
 });
 
-// Admin Trigger Daily 5% Profit (Instant Test Trigger)
+// Admin Trigger Daily Package Yield & Chain Profit
 app.post('/api/admin/trigger-daily-profit', (req, res) => {
-  processDailyReturns();
-  res.json({ message: '5% daily interest processed successfully across all eligible client wallets!' });
+  const result = processDailyReturns();
+  res.json({
+    message: `Daily yield & Chain Profit credited successfully! Processed RS ${result.totalDistributed.toLocaleString()} across ${result.packageYieldCount} active investments & ${result.chainBonusCount} referrer chain bonuses!`,
+    details: result,
+  });
 });
 
 // Admin Get All Users

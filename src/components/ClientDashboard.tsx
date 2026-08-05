@@ -222,7 +222,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
           <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; Direct Bonus
         </h3>
         <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
-          Earn a 10% cash bonus credited to your wallet when your invited friend buys their first investment plan!
+          Earn a 10% cash bonus credited directly to your wallet whenever your invited friend purchases an investment package, plus multi-tier daily chain profit yields!
         </p>
 
         {/* Single Centered Referral Code Box */}
@@ -556,7 +556,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   {user.referral_code}
                 </p>
                 <p className="text-xs text-emerald-100 mt-1 font-medium">
-                  Invite friends and earn a 10% direct cash bonus on their first investment package purchase!
+                  Invite friends and earn 10% cash bonus on every package purchase + multi-tier daily chain profits!
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 shrink-0">

@@ -640,7 +640,7 @@ export default function App() {
       const res = await fetch('/api/admin/trigger-daily-profit', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        showToast('✨ 5% Daily Yield credited across all client wallets!');
+        showToast(data.message || '✨ Daily package yield & Chain Profit credited across client wallets!');
         fetchAdminData();
         if (clientUser) fetchUserProfile(clientUser.id);
       }
@@ -692,17 +692,16 @@ export default function App() {
             users[uIdx].wallet_balance -= pkg.price_rs;
             users[uIdx].daily_profit = (users[uIdx].daily_profit || 0) + pkg.daily_return_rs;
 
-            // Direct referral bonus (10%) on FIRST investment
-            if (users[uIdx].referred_by && !users[uIdx].first_investment_bonus_paid) {
+            // Direct referral bonus (10%) on investment plan purchase
+            if (users[uIdx].referred_by && users[uIdx].referred_by?.trim()) {
               const inviterIdx = users.findIndex(
-                (u) => u.referral_code.toUpperCase() === users[uIdx].referred_by?.toUpperCase()
+                (u) => u.referral_code.trim().toUpperCase() === users[uIdx].referred_by?.trim().toUpperCase()
               );
               if (inviterIdx >= 0) {
                 const bonus = Math.round(pkg.price_rs * 0.1);
                 users[inviterIdx].wallet_balance += bonus;
                 users[inviterIdx].total_profit_earned = (users[inviterIdx].total_profit_earned || 0) + bonus;
               }
-              users[uIdx].first_investment_bonus_paid = true;
             }
 
             localStorage.setItem('gw_registered_users', JSON.stringify(users));
