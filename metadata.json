@@ -1,0 +1,6 @@
+{
+  "name": "GreenWorld - Solar Investment Platform",
+  "description": "Full-stack solar energy investment platform featuring client wallet, daily profit yields, deposit proof uploads, withdrawal requests, referral system, and real-time owner admin control panel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
