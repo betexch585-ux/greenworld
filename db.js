@@ -6,7 +6,7 @@ const supabaseKey =
   process.env.SUPABASE_KEY ||
   process.env.SUPABASE_ANON_KEY ||
   process.env.VITE_SUPABASE_ANON_KEY ||
-  '';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
