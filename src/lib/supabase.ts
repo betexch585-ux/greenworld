@@ -10,10 +10,13 @@ const getEnvVar = (key: string, viteKey: string): string => {
 };
 
 const DEFAULT_SUPABASE_URL = 'https://mxgputlyhoxejkinyblq.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'sb_publishable_2zqEA4-fPxSYYkwuEka_Jg_hwpY0uMJ';
+// Secret API key read from environment variables
+const DEFAULT_SUPABASE_KEY =
+  (typeof process !== 'undefined' && process.env ? process.env.SUPABASE_API_KEY || process.env.SUPABASE_KEY : '') || '';
 
 const supabaseUrl = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
 const supabaseKey =
+  getEnvVar('SUPABASE_API_KEY', 'VITE_SUPABASE_API_KEY') ||
   getEnvVar('SUPABASE_KEY', 'VITE_SUPABASE_ANON_KEY') ||
   getEnvVar('SUPABASE_ANON_KEY', 'VITE_SUPABASE_ANON_KEY') ||
   DEFAULT_SUPABASE_KEY;

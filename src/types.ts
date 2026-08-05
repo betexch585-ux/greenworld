@@ -12,6 +12,7 @@ export interface User {
   total_withdrawals: number; // in RS
   daily_profit: number; // in RS
   total_profit_earned: number; // in RS (cumulative profit + referral yields)
+  first_investment_bonus_paid?: boolean;
   role: UserRole;
   created_at: string;
 }

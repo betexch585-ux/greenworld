@@ -76,11 +76,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span className="text-[10px] sm:text-xs font-extrabold text-slate-900 truncate max-w-[75px] sm:max-w-[150px]">
                       {user.username || user.full_name}
                     </span>
-                    {user.role === 'client' && user.referral_code && (
-                      <span className="hidden sm:inline-block text-[9px] font-black text-emerald-900 bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-300 font-mono tracking-wider">
-                        {user.referral_code}
-                      </span>
-                    )}
                   </div>
                   <span className="text-[9px] sm:text-[11px] text-emerald-700 font-bold flex items-center justify-end gap-0.5">
                     <Wallet className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600" /> RS {user.wallet_balance.toLocaleString()}

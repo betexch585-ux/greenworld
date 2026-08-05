@@ -77,7 +77,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
   return (
     <div className="space-y-5 sm:space-y-8 animate-fade-in pb-12">
       {/* Welcome Back Note Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white/80 backdrop-blur-sm border border-emerald-100 p-4 sm:px-6 rounded-2xl shadow-2xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-sm border border-emerald-100 p-4 sm:px-6 rounded-2xl shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-emerald-100/80 border border-emerald-200/60 flex items-center justify-center shrink-0">
             <Sparkles className="w-5 h-5 text-emerald-700" />
@@ -91,21 +91,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-2 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-xs font-bold text-emerald-950">
-            <span className="text-emerald-800 font-bold">Referral Code:</span>
-            <span className="font-mono font-black text-sm text-emerald-900 bg-emerald-200/90 px-2.5 py-0.5 rounded-md border border-emerald-300 tracking-wider">
-              {user.referral_code}
-            </span>
-            <button
-              onClick={handleCopyCodeOnly}
-              title="Copy Referral Code"
-              className="p-1 hover:bg-emerald-200/80 rounded text-emerald-800 transition-colors"
-            >
-              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-700" /> : <Copy className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-          <div className="hidden lg:flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Live Solar Node Connected</span>
           </div>
@@ -230,69 +217,60 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
       </div>
 
       {/* Referral Network Card (Natural Tones) */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between flex-wrap gap-2">
-          <span className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; 3% Passive Yield
-          </span>
-          <span className="text-xs font-bold text-emerald-900 bg-emerald-100/90 px-3 py-1 rounded-full border border-emerald-200">
-            Referral Code: <strong className="font-mono font-black text-emerald-950 text-sm tracking-wider">{user.referral_code}</strong>
-          </span>
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-sm text-center">
+        <h3 className="text-lg font-bold text-slate-800 mb-1 flex items-center justify-center gap-2">
+          <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; Direct Bonus
         </h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
+          Earn a 10% cash bonus credited to your wallet when your invited friend buys their first investment plan!
+        </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="bg-emerald-50/90 rounded-2xl p-4 border border-emerald-200 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-extrabold text-emerald-800 tracking-wider">
-                Your Referral Code
-              </p>
-              <p className="text-2xl font-black font-mono text-emerald-950 tracking-widest mt-0.5">
-                {user.referral_code}
-              </p>
-            </div>
+        {/* Single Centered Referral Code Box */}
+        <div className="bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-950 text-white p-6 sm:p-8 rounded-3xl shadow-md my-4 max-w-xl mx-auto border border-emerald-700/60">
+          <p className="text-[11px] font-black uppercase tracking-widest text-emerald-400">
+            Your Unique Referral Code
+          </p>
+          <div className="inline-flex items-center justify-center gap-3 bg-slate-900/90 px-6 py-3 rounded-2xl border border-emerald-600/70 my-3.5 shadow-inner">
+            <span className="text-3xl sm:text-4xl font-black font-mono tracking-widest text-emerald-300 select-all">
+              {user.referral_code}
+            </span>
             <button
               onClick={handleCopyCodeOnly}
-              className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0"
+              title="Copy Referral Code"
+              className="p-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all shadow-xs active:scale-95 shrink-0"
             >
-              {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              <span>{copiedCode ? 'Copied Code' : 'Copy Code'}</span>
+              {copiedCode ? <Check className="w-5 h-5 text-emerald-200" /> : <Copy className="w-5 h-5" />}
             </button>
           </div>
+          <p className="text-xs text-emerald-100 font-medium">
+            {copiedCode ? '✓ Referral code copied!' : 'Share code with friends during registration'}
+          </p>
 
-          <div className="bg-emerald-50/90 rounded-2xl p-4 border border-emerald-200 flex items-center justify-between">
-            <div className="min-w-0 pr-2">
-              <p className="text-[10px] uppercase font-extrabold text-emerald-800 tracking-wider">
-                Your Referral Link
-              </p>
-              <p className="text-xs font-mono font-bold text-emerald-900 truncate mt-1">
-                {referralLink}
-              </p>
-            </div>
+          <div className="mt-4 pt-3 border-t border-emerald-800/80 flex items-center justify-center gap-2 text-xs font-mono text-emerald-300">
+            <span className="text-emerald-400 font-bold">Referral Link:</span>
+            <span className="truncate max-w-[180px] sm:max-w-xs">{referralLink}</span>
             <button
               onClick={handleCopyReferral}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all shrink-0"
+              className="p-1 hover:bg-emerald-800 rounded text-emerald-300 transition-colors"
+              title="Copy Link"
             >
-              {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              <span>{copiedLink ? 'Copied Link' : 'Copy Link'}</span>
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6 text-left">
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
             <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Direct Referrals</p>
-            <p className="text-2xl font-bold text-slate-800">{referrals.length}</p>
+            <p className="text-xl font-black text-slate-800">{referrals.length} Members</p>
           </div>
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Referral Rewards</p>
-            <p className="text-2xl font-bold text-emerald-700">10% Deposit + 3% Yield</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Commission Rate</p>
+            <p className="text-xl font-black text-emerald-600">10% First Investment</p>
           </div>
-          <div className="p-4 rounded-2xl bg-emerald-600 text-white shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-xs font-medium opacity-80">Referral Earnings</p>
-              <p className="text-2xl font-bold">RS {referralEarningsRs.toLocaleString()}</p>
-            </div>
-            <Users className="w-8 h-8 opacity-20" />
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+            <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Referral Earnings</p>
+            <p className="text-xl font-black text-amber-600">RS {referralEarningsRs.toLocaleString()}</p>
           </div>
         </div>
       </div>
@@ -578,7 +556,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   {user.referral_code}
                 </p>
                 <p className="text-xs text-emerald-100 mt-1 font-medium">
-                  Share your referral code to earn 10% cash bonus on deposits + 3% daily passive yield commission!
+                  Invite friends and earn a 10% direct cash bonus on their first investment package purchase!
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 shrink-0">

@@ -58,6 +58,7 @@ export interface UserRecord {
   total_withdrawals: number;
   daily_profit: number;
   total_profit_earned: number;
+  first_investment_bonus_paid?: boolean;
   role: 'client' | 'admin';
   created_at: string;
 }
@@ -689,11 +690,14 @@ app.post('/api/client/login', limiter, async (req, res) => {
 
   const cleanUsername = username.trim().toLowerCase();
   const cleanPassword = password.trim();
+  const digitsOnly = username.replace(/[^\d]/g, '');
 
-  // 1. Direct match in users store
+  // 1. Direct match in users store (by username or phone)
   let user = users.find(
     (u) =>
-      u.username.toLowerCase() === cleanUsername &&
+      (u.username.toLowerCase() === cleanUsername ||
+        u.phone === username.trim() ||
+        (digitsOnly && u.phone.replace(/[^\d]/g, '') === digitsOnly)) &&
       (u.password === password || u.password.trim() === cleanPassword)
   );
 
@@ -734,6 +738,30 @@ app.post('/api/client/login', limiter, async (req, res) => {
     }
   }
 
+  // 3. Fallback: Query Supabase database if not found in memory
+  if (!user) {
+    try {
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('*')
+        .or(`username.ilike.${cleanUsername},phone.eq.${username.trim()}`)
+        .maybeSingle();
+
+      if (dbUser && (dbUser.password === password || dbUser.password?.trim() === cleanPassword)) {
+        user = dbUser as UserRecord;
+        const existsInMem = users.findIndex((u) => u.id === user!.id);
+        if (existsInMem >= 0) {
+          users[existsInMem] = user;
+        } else {
+          users.push(user);
+        }
+        saveDatabase();
+      }
+    } catch (dbErr) {
+      console.warn('[Login DB Fallback Error]:', dbErr);
+    }
+  }
+
   if (!user) {
     return res.status(401).json({ error: 'Invalid username or password.' });
   }
@@ -759,16 +787,21 @@ app.get('/api/client/profile/:userId', (req, res) => {
 
   // Find direct referrals
   const directReferrals = users
-    .filter((u) => u.referred_by === user.referral_code)
-    .map((r) => ({
-      id: r.id,
-      referred_username: r.username,
-      referred_phone: r.phone,
-      joined_at: r.created_at,
-      total_deposits: r.total_deposits,
-      commission_earned_rs: Math.round(r.total_deposits * 0.1), // 10% referral commission
-      status: r.total_deposits > 0 ? ('Active' as const) : ('Pending' as const),
-    }));
+    .filter((u) => u.referred_by?.toUpperCase() === user.referral_code.toUpperCase())
+    .map((r) => {
+      const rInvs = investments.filter((i) => i.user_id === r.id);
+      const firstInvAmount = rInvs.length > 0 ? rInvs[0].amount_rs : 0;
+      const commission = Math.round(firstInvAmount * 0.1);
+      return {
+        id: r.id,
+        referred_username: r.username,
+        referred_phone: r.phone,
+        joined_at: r.created_at,
+        total_deposits: r.total_deposits,
+        commission_earned_rs: commission,
+        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
+      };
+    });
 
   const totalReferralEarnings = directReferrals.reduce((sum, r) => sum + r.commission_earned_rs, 0);
 
@@ -911,6 +944,19 @@ app.post('/api/client/invest', (req, res) => {
 
   user.wallet_balance -= pkg.price_rs;
 
+  // Check if user was referred by someone AND has NOT received first investment referral bonus yet
+  if (user.referred_by && !user.first_investment_bonus_paid) {
+    const inviter = users.find((u) => u.referral_code.toUpperCase() === user.referred_by?.toUpperCase());
+    if (inviter) {
+      const referralBonus = Math.round(pkg.price_rs * 0.1); // 10% bonus on FIRST investment
+      inviter.wallet_balance += referralBonus;
+      inviter.total_profit_earned = (inviter.total_profit_earned || 0) + referralBonus;
+      user.first_investment_bonus_paid = true;
+      syncUserToSupabase(inviter);
+      console.log(`[REFERRAL BONUS] Inviter ${inviter.username} credited 10% (RS ${referralBonus}) for ${user.username}'s FIRST investment plan (${pkg.name}).`);
+    }
+  }
+
   const newInv: InvestmentRecord = {
     id: 'inv-' + Date.now(),
     user_id: user.id,
@@ -968,17 +1014,6 @@ app.post('/api/admin/approve-deposit', (req, res) => {
   if (user) {
     user.wallet_balance += deposit.amount;
     user.total_deposits += deposit.amount;
-
-    // Check if user was referred by someone and grant 10% direct referral bonus to inviter
-    if (user.referred_by) {
-      const inviter = users.find((u) => u.referral_code.toUpperCase() === user.referred_by?.toUpperCase());
-      if (inviter) {
-        const referralBonus = Math.round(deposit.amount * 0.1);
-        inviter.wallet_balance += referralBonus;
-        syncUserToSupabase(inviter);
-        console.log(`[REFERRAL BONUS] Inviter ${inviter.username} credited RS ${referralBonus} for user ${user.username}'s deposit.`);
-      }
-    }
     syncUserToSupabase(user);
   }
 

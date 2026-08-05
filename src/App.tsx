@@ -195,9 +195,19 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isTriggeringProfit, setIsTriggeringProfit] = useState(false);
 
-  // Auto-login default demo user on mount for smooth immediate preview
+  // Auto-login default demo user on mount & set up 3s polling for real-time admin sync
   useEffect(() => {
     fetchInitialData();
+
+    const interval = setInterval(() => {
+      fetchAdminData();
+      const client = localStorage.getItem('gw_active_client_id');
+      if (client) {
+        fetchUserProfile(client);
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const showToast = (msg: string) => {
@@ -207,7 +217,18 @@ export default function App() {
 
   const fetchInitialData = async () => {
     try {
-      // 1. Public packages & owner settings
+      // 1. Restore Admin Session if logged in
+      const savedAdminStr = localStorage.getItem('gw_active_admin_user');
+      if (savedAdminStr) {
+        try {
+          const parsedAdmin = JSON.parse(savedAdminStr);
+          setAdminUser(parsedAdmin);
+        } catch (e) {
+          console.warn('Error parsing saved admin user', e);
+        }
+      }
+
+      // 2. Public packages & owner settings
       const pubRes = await fetch('/api/public/packages');
       if (pubRes.ok) {
         const pubData = await pubRes.json();
@@ -215,20 +236,34 @@ export default function App() {
         if (pubData.settings) setOwnerSettings(pubData.settings);
       }
 
-      // 2. Fetch admin users & pending items
+      // 3. Fetch admin users & pending items
       fetchAdminData();
 
-      // 3. Restore client session if available
+      // 4. Restore client session if available
       const savedClientId = localStorage.getItem('gw_active_client_id');
+      const savedClientUserStr = localStorage.getItem('gw_active_client_user');
       if (savedClientId) {
-        const profileRes = await fetch(`/api/client/profile/${savedClientId}`);
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          setClientUser(profileData.user);
-          setReferrals(profileData.referrals || []);
-          setReferralEarningsRs(profileData.referral_earnings_rs || 0);
-          setUserInvestments(profileData.investments || []);
-          return;
+        try {
+          const profileRes = await fetch(`/api/client/profile/${savedClientId}`);
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            setClientUser(profileData.user);
+            localStorage.setItem('gw_active_client_user', JSON.stringify(profileData.user));
+            setReferrals(profileData.referrals || []);
+            setReferralEarningsRs(profileData.referral_earnings_rs || 0);
+            setUserInvestments(profileData.investments || []);
+            return;
+          }
+        } catch (e) {
+          console.warn('Profile fetch failed, using cached client user');
+        }
+
+        if (savedClientUserStr) {
+          try {
+            setClientUser(JSON.parse(savedClientUserStr));
+          } catch (e) {
+            console.warn('Error parsing saved client user', e);
+          }
         }
       }
     } catch (err) {
@@ -350,15 +385,16 @@ export default function App() {
   const handleUserLoginSuccess = (user: User) => {
     if (user.role === 'admin') {
       setAdminUser(user);
+      localStorage.setItem('gw_active_admin_user', JSON.stringify(user));
       fetchAdminData();
       showToast(`Admin signed in: ${user.full_name}`);
-      // Ensure client user is also active if not logged in
       if (!clientUser) {
         fetchInitialData();
       }
     } else {
       setClientUser(user);
       localStorage.setItem('gw_active_client_id', user.id);
+      localStorage.setItem('gw_active_client_user', JSON.stringify(user));
       fetchUserProfile(user.id);
       fetchAdminData();
       showToast(`Welcome back, ${user.full_name}!`);
@@ -368,10 +404,12 @@ export default function App() {
   const handleLogout = () => {
     if (activeView === 'admin') {
       setAdminUser(null);
+      localStorage.removeItem('gw_active_admin_user');
       showToast('Admin signed out.');
     } else {
       setClientUser(null);
       localStorage.removeItem('gw_active_client_id');
+      localStorage.removeItem('gw_active_client_user');
       showToast('Client signed out.');
     }
   };
@@ -653,6 +691,20 @@ export default function App() {
           if (uIdx >= 0) {
             users[uIdx].wallet_balance -= pkg.price_rs;
             users[uIdx].daily_profit = (users[uIdx].daily_profit || 0) + pkg.daily_return_rs;
+
+            // Direct referral bonus (10%) on FIRST investment
+            if (users[uIdx].referred_by && !users[uIdx].first_investment_bonus_paid) {
+              const inviterIdx = users.findIndex(
+                (u) => u.referral_code.toUpperCase() === users[uIdx].referred_by?.toUpperCase()
+              );
+              if (inviterIdx >= 0) {
+                const bonus = Math.round(pkg.price_rs * 0.1);
+                users[inviterIdx].wallet_balance += bonus;
+                users[inviterIdx].total_profit_earned = (users[inviterIdx].total_profit_earned || 0) + bonus;
+              }
+              users[uIdx].first_investment_bonus_paid = true;
+            }
+
             localStorage.setItem('gw_registered_users', JSON.stringify(users));
             setClientUser(users[uIdx]);
           }
