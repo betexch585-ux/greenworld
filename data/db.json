@@ -97,11 +97,11 @@
       "password": "Client1234.",
       "phone": "+92333811631",
       "referral_code": "GWLYHF",
-      "wallet_balance": 4808,
+      "wallet_balance": 5867,
       "total_deposits": 15000,
       "total_withdrawals": 0,
-      "daily_profit": 4308,
-      "total_profit_earned": 4808,
+      "daily_profit": 5367,
+      "total_profit_earned": 5867,
       "role": "client",
       "created_at": "2026-08-05T12:51:28.238+00:00"
     },
@@ -190,11 +190,11 @@
       "phone": "+923001122334",
       "referral_code": "GWAB8Q",
       "referred_by": "GWLYHF",
-      "wallet_balance": 8500,
+      "wallet_balance": 9500,
       "total_deposits": 10000,
       "total_withdrawals": 0,
-      "daily_profit": 3500,
-      "total_profit_earned": 3500,
+      "daily_profit": 4500,
+      "total_profit_earned": 4500,
       "role": "client",
       "created_at": "2026-08-05T22:03:44.383+00:00",
       "first_investment_bonus_paid": true
@@ -206,11 +206,11 @@
       "password": "Rajj1536",
       "phone": "+923337212110",
       "referral_code": "GWGJ22",
-      "wallet_balance": 10349,
+      "wallet_balance": 13951,
       "total_deposits": 5000,
       "total_withdrawals": 0,
-      "daily_profit": 7849,
-      "total_profit_earned": 10349,
+      "daily_profit": 11451,
+      "total_profit_earned": 13951,
       "role": "client",
       "created_at": "2026-08-05T22:12:32.106+00:00"
     },
@@ -222,11 +222,11 @@
       "phone": "+9249948448843",
       "referral_code": "GWHARR",
       "referred_by": "GWGJ22",
-      "wallet_balance": 22202,
+      "wallet_balance": 25029,
       "total_deposits": 25000,
       "total_withdrawals": 0,
-      "daily_profit": 21202,
-      "total_profit_earned": 22202,
+      "daily_profit": 24029,
+      "total_profit_earned": 25029,
       "role": "client",
       "created_at": "2026-08-05T22:14:01.116+00:00"
     },
@@ -238,11 +238,11 @@
       "phone": "+92383833377447",
       "referral_code": "GW7U9V",
       "referred_by": "GWHARR",
-      "wallet_balance": 9018,
+      "wallet_balance": 10021,
       "total_deposits": 10000,
       "total_withdrawals": 0,
-      "daily_profit": 8018,
-      "total_profit_earned": 9018,
+      "daily_profit": 9021,
+      "total_profit_earned": 10021,
       "role": "client",
       "created_at": "2026-08-05T22:20:56.053+00:00"
     },
@@ -254,13 +254,77 @@
       "phone": "+92032456443823",
       "referral_code": "GW5FSK",
       "referred_by": "GW7U9V",
-      "wallet_balance": 5092,
+      "wallet_balance": 5564,
       "total_deposits": 10000,
       "total_withdrawals": 0,
-      "daily_profit": 5092,
-      "total_profit_earned": 5092,
+      "daily_profit": 5564,
+      "total_profit_earned": 5564,
       "role": "client",
       "created_at": "2026-08-05T22:33:11.618+00:00"
+    },
+    {
+      "id": "user-1785971528030",
+      "full_name": "Sardar khan",
+      "username": "khan",
+      "password": "khan12",
+      "phone": "+928265292922",
+      "referral_code": "GWHHQM",
+      "referred_by": "GW5FSK",
+      "wallet_balance": 5000,
+      "total_deposits": 5000,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T23:12:08.03+00:00"
+    },
+    {
+      "id": "user-1785971690162",
+      "full_name": "User Alpha",
+      "username": "alpha_1785971690131",
+      "password": "Password123.",
+      "phone": "+923001111111",
+      "referral_code": "GWGD8H",
+      "wallet_balance": 650,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 150,
+      "total_profit_earned": 650,
+      "role": "client",
+      "created_at": "2026-08-05T23:14:50.162Z"
+    },
+    {
+      "id": "user-1785971690172",
+      "full_name": "User Beta",
+      "username": "beta_1785971690168",
+      "password": "Password123.",
+      "phone": "+923002222222",
+      "referral_code": "GW3W5R",
+      "referred_by": "GWGD8H",
+      "wallet_balance": 1300,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 300,
+      "total_profit_earned": 1300,
+      "role": "client",
+      "created_at": "2026-08-05T23:14:50.172Z"
+    },
+    {
+      "id": "user-1785971690175",
+      "full_name": "User Gamma",
+      "username": "gamma_1785971690173",
+      "password": "Password123.",
+      "phone": "+923003333333",
+      "referral_code": "GWUNKF",
+      "referred_by": "GW3W5R",
+      "wallet_balance": 600,
+      "total_deposits": 10000,
+      "total_withdrawals": 0,
+      "daily_profit": 600,
+      "total_profit_earned": 600,
+      "role": "client",
+      "created_at": "2026-08-05T23:14:50.175Z",
+      "first_investment_bonus_paid": true
     }
   ],
   "deposits": [
@@ -298,6 +362,18 @@
       "status": "APPROVED",
       "created_at": "2026-08-05T22:03:44.393Z",
       "approved_at": "2026-08-05T22:03:44.396Z"
+    },
+    {
+      "id": "dep-1785971690198",
+      "user_id": "user-1785971690175",
+      "username": "gamma_1785971690173",
+      "phone": "+923003333333",
+      "amount": 10000,
+      "payment_method": "EasyPaisa",
+      "screenshot_url": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22500%22%20viewBox%3D%220%200%20400%20500%22%3E%0A%20%20%20%20%3Crect%20width%3D%22400%22%20height%3D%22500%22%20fill%3D%22%230f172a%22%20rx%3D%2216%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22360%22%20height%3D%22460%22%20fill%3D%22%231e293b%22%20rx%3D%2212%22%20stroke%3D%22%2322c55e%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22200%22%20cy%3D%2280%22%20r%3D%2230%22%20fill%3D%22%2315803d%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M190%2080%20l7%207%20l15%20-15%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22140%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EPAYMENT%20SUCCESSFUL%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22165%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2394a3b8%22%20text-anchor%3D%22middle%22%3EGreenWorld%20Solar%20Deposit%20Proof%3C%2Ftext%3E%0A%20%20%20%20%3Cline%20x1%3D%2240%22%20y1%3D%22190%22%20x2%3D%22360%22%20y2%3D%22190%22%20stroke%3D%22%23334155%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAmount%20Transferred%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22end%22%3ERS%2010%2C000%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAccount%20Title%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EUser%20Gamma%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDestination%20Bank%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EMeezan%20Bank%20Ltd%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3ETransaction%20ID%20(TRX)%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%20fill%3D%22%2338bdf8%22%20text-anchor%3D%22end%22%3ETRX-44571206%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDate%20%26amp%3B%20Time%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%23cbd5e1%22%20text-anchor%3D%22end%22%3E8%2F5%2F2026%2C%2011%3A14%3A50%20PM%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%22410%22%20width%3D%22320%22%20height%3D%2240%22%20fill%3D%22%230f172a%22%20rx%3D%228%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22435%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EVerified%20Digital%20Payment%20Voucher%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
+      "status": "APPROVED",
+      "created_at": "2026-08-05T23:14:50.198Z",
+      "approved_at": "2026-08-05T23:14:50.201Z"
     }
   ],
   "withdrawals": [
@@ -332,6 +408,15 @@
       "amount_rs": 5000,
       "daily_return_rs": 250,
       "purchased_at": "2026-08-05T22:03:44.402Z"
+    },
+    {
+      "id": "inv-1785971690205",
+      "user_id": "user-1785971690175",
+      "package_id": "pkg-4",
+      "package_name": "Commercial Solar Kit 1kW",
+      "amount_rs": 10000,
+      "daily_return_rs": 600,
+      "purchased_at": "2026-08-05T23:14:50.205Z"
     }
   ],
   "ownerSettings": {
@@ -345,5 +430,5 @@
     "deposit_instructions": "Please send exact amount in RS to official payment destination.",
     "whatsapp_number": "+923008829102"
   },
-  "updated_at": "2026-08-05T23:00:09.015Z"
+  "updated_at": "2026-08-05T23:14:50.224Z"
 }

@@ -615,11 +615,8 @@ function processDailyReturns() {
       const userInvs = investments.filter((inv) => inv.user_id === u.id);
       const totalPackageYield = userInvs.reduce((sum, inv) => sum + inv.daily_return_rs, 0);
 
-      // If client has active package investments, credit exact daily return sum of their active packages
-      // If no active packages but positive wallet balance, credit 3% of balance
-      const profitToCredit = totalPackageYield > 0
-        ? totalPackageYield
-        : (u.wallet_balance > 0 ? Math.round(u.wallet_balance * 0.03) : 0);
+      // Profit is strictly credited for active package investments
+      const profitToCredit = totalPackageYield;
 
       if (profitToCredit > 0) {
         u.wallet_balance += profitToCredit;
@@ -633,14 +630,13 @@ function processDailyReturns() {
   });
 
   // 2. Process 2-Tier Chain Profit System for Referrers
-  // Level 1: Referrer gets 3% of direct downline clients' active invested amounts (or wallet balance/deposits)
-  // Level 2: Referrer gets 1.5% of Level 2 downline clients' active invested amounts (or wallet balance/deposits)
-  // Level 3 is removed completely as requested.
+  // Level 1: Referrer gets EXACT 3% of direct downline clients' active invested plan amounts
+  // Level 2: Referrer gets EXACT 1.5% of Level 2 downline clients' active invested plan amounts
   users.forEach((referrer) => {
     if (referrer.role === 'client' || referrer.role === 'admin') {
       let referrerChainBonus = 0;
 
-      // Level 1 Direct Referrals (3% of active invested amount)
+      // Level 1 Direct Referrals (Exact 3% of active invested plan amount)
       const l1Users = users.filter((u) => {
         const inv = findInviter(u.referred_by);
         return inv && inv.id === referrer.id;
@@ -649,12 +645,11 @@ function processDailyReturns() {
       l1Users.forEach((l1) => {
         const l1Invs = investments.filter((i) => i.user_id === l1.id);
         const l1InvestedAmount = l1Invs.reduce((sum, i) => sum + i.amount_rs, 0);
-        const l1Base = l1InvestedAmount > 0 ? l1InvestedAmount : (l1.wallet_balance > 0 ? l1.wallet_balance : l1.total_deposits);
-        if (l1Base > 0) {
-          referrerChainBonus += Math.round(l1Base * 0.03); // 3% Level 1 Chain Bonus
+        if (l1InvestedAmount > 0) {
+          referrerChainBonus += Math.round(l1InvestedAmount * 0.03); // Exact 3% Level 1 Chain Bonus
         }
 
-        // Level 2 Indirect Referrals (1.5% of active invested amount)
+        // Level 2 Indirect Referrals (Exact 1.5% of active invested plan amount)
         const l2Users = users.filter((u) => {
           const inv = findInviter(u.referred_by);
           return inv && inv.id === l1.id;
@@ -663,9 +658,8 @@ function processDailyReturns() {
         l2Users.forEach((l2) => {
           const l2Invs = investments.filter((i) => i.user_id === l2.id);
           const l2InvestedAmount = l2Invs.reduce((sum, i) => sum + i.amount_rs, 0);
-          const l2Base = l2InvestedAmount > 0 ? l2InvestedAmount : (l2.wallet_balance > 0 ? l2.wallet_balance : l2.total_deposits);
-          if (l2Base > 0) {
-            referrerChainBonus += Math.round(l2Base * 0.015); // 1.5% Level 2 Chain Bonus
+          if (l2InvestedAmount > 0) {
+            referrerChainBonus += Math.round(l2InvestedAmount * 0.015); // Exact 1.5% Level 2 Chain Bonus
           }
         });
       });
@@ -677,7 +671,7 @@ function processDailyReturns() {
         totalDistributed += referrerChainBonus;
         chainBonusCount++;
         syncUserToSupabase(referrer).catch(() => {});
-        console.log(`[2-LEVEL CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from 2-tier downline network.`);
+        console.log(`[2-LEVEL CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from 2-tier downline network active plan investments.`);
       }
     }
   });
@@ -927,8 +921,7 @@ app.get('/api/client/profile/:userId', async (req, res) => {
     ...l1Members.map((r) => {
       const rInvs = investments.filter((i) => i.user_id === r.id);
       const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
-      const base = totalInvAmount > 0 ? totalInvAmount : (r.wallet_balance > 0 ? r.wallet_balance : r.total_deposits);
-      const commission = Math.round(base * 0.10);
+      const commission = Math.round(totalInvAmount * 0.10);
       return {
         id: r.id,
         referred_username: r.username,
@@ -937,14 +930,13 @@ app.get('/api/client/profile/:userId', async (req, res) => {
         total_deposits: r.total_deposits || 0,
         commission_earned_rs: commission,
         level: 1,
-        status: rInvs.length > 0 || r.wallet_balance > 0 ? ('Active' as const) : ('Pending' as const),
+        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
       };
     }),
     ...l2Members.map((r) => {
       const rInvs = investments.filter((i) => i.user_id === r.id);
       const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
-      const base = totalInvAmount > 0 ? totalInvAmount : (r.wallet_balance > 0 ? r.wallet_balance : r.total_deposits);
-      const commission = Math.round(base * 0.05);
+      const commission = Math.round(totalInvAmount * 0.05);
       return {
         id: r.id,
         referred_username: r.username,
@@ -953,7 +945,7 @@ app.get('/api/client/profile/:userId', async (req, res) => {
         total_deposits: r.total_deposits || 0,
         commission_earned_rs: commission,
         level: 2,
-        status: rInvs.length > 0 || r.wallet_balance > 0 ? ('Active' as const) : ('Pending' as const),
+        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
       };
     }),
   ];
