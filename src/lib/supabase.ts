@@ -1,13 +1,10 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Resolve environment variables across server (Node process.env) and browser (import.meta.env)
+// Resolve environment variables across server (Node process.env) and browser environments
 const getEnvVar = (key: string, viteKey: string): string => {
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key]!;
-  }
-  const metaEnv = (import.meta as any).env;
-  if (metaEnv && metaEnv[viteKey]) {
-    return metaEnv[viteKey] as string;
+  if (typeof process !== 'undefined' && process.env) {
+    if (process.env[key]) return process.env[key]!;
+    if (process.env[viteKey]) return process.env[viteKey]!;
   }
   return '';
 };
