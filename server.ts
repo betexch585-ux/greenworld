@@ -206,6 +206,7 @@ async function syncUserToSupabase(user: UserRecord) {
       id: user.id,
       full_name: user.full_name,
       username: user.username,
+      password: user.password,
       phone: user.phone,
       referral_code: user.referral_code,
       referred_by: user.referred_by || null,
@@ -240,6 +241,77 @@ async function syncUserToSupabase(user: UserRecord) {
     }
   } catch (err: any) {
     console.warn('[Supabase Sync Exception]:', err?.message);
+  }
+}
+
+// Synchronize and load users directly from Supabase Cloud Database
+async function syncFromSupabase() {
+  try {
+    const { data: sbUsers, error } = await supabase.from('users').select('*');
+    if (error) {
+      console.warn('[Supabase Sync From Error]:', error.message);
+      return;
+    }
+
+    if (Array.isArray(sbUsers) && sbUsers.length > 0) {
+      let realClientsAdded = 0;
+      for (const sbUser of sbUsers) {
+        const existingIndex = users.findIndex(
+          (u) => u.id === sbUser.id || u.username.toLowerCase() === (sbUser.username || '').toLowerCase()
+        );
+
+        if (existingIndex >= 0) {
+          // Update existing user with Supabase state while keeping local password if missing in SB
+          users[existingIndex] = {
+            ...users[existingIndex],
+            full_name: sbUser.full_name || users[existingIndex].full_name,
+            username: sbUser.username || users[existingIndex].username,
+            password: sbUser.password || users[existingIndex].password || 'Client1234.',
+            phone: sbUser.phone || users[existingIndex].phone,
+            wallet_balance: typeof sbUser.wallet_balance === 'number' ? sbUser.wallet_balance : users[existingIndex].wallet_balance,
+            total_deposits: typeof sbUser.total_deposits === 'number' ? sbUser.total_deposits : users[existingIndex].total_deposits,
+            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? sbUser.total_withdrawals : users[existingIndex].total_withdrawals,
+            daily_profit: typeof sbUser.daily_profit === 'number' ? sbUser.daily_profit : users[existingIndex].daily_profit,
+            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? sbUser.total_profit_earned : users[existingIndex].total_profit_earned,
+            role: sbUser.role || users[existingIndex].role || 'client',
+            referral_code: sbUser.referral_code || users[existingIndex].referral_code,
+            referred_by: sbUser.referred_by || users[existingIndex].referred_by,
+            created_at: sbUser.created_at || users[existingIndex].created_at,
+          };
+        } else {
+          // Add brand new user from Supabase
+          const newUser: UserRecord = {
+            id: sbUser.id || 'user-' + Date.now() + Math.random().toString(36).substr(2, 4),
+            full_name: sbUser.full_name || sbUser.username || 'Client User',
+            username: (sbUser.username || 'user' + Date.now()).toLowerCase(),
+            password: sbUser.password || 'Client1234.',
+            phone: sbUser.phone || '',
+            referral_code: sbUser.referral_code || generateReferralCode(),
+            referred_by: sbUser.referred_by || undefined,
+            wallet_balance: sbUser.wallet_balance || 0,
+            total_deposits: sbUser.total_deposits || 0,
+            total_withdrawals: sbUser.total_withdrawals || 0,
+            daily_profit: sbUser.daily_profit || 0,
+            total_profit_earned: sbUser.total_profit_earned || 0,
+            role: sbUser.role || 'client',
+            created_at: sbUser.created_at || new Date().toISOString(),
+          };
+          users.push(newUser);
+          realClientsAdded++;
+        }
+      }
+
+      // Filter out dummy seeded accounts if real Supabase clients exist
+      const hasRealClients = users.some((u) => u.role === 'client' && !['user-1', 'user-2', 'user-3'].includes(u.id));
+      if (hasRealClients) {
+        users = users.filter((u) => !['user-1', 'user-2', 'user-3'].includes(u.id));
+      }
+
+      saveDatabase();
+      console.log(`[Supabase Live Sync] Successfully synced ${sbUsers.length} records from Supabase (${realClientsAdded} new clients loaded).`);
+    }
+  } catch (err: any) {
+    console.warn('[Supabase Sync From Catch]:', err?.message);
   }
 }
 
@@ -490,6 +562,8 @@ function initDatabase() {
     seedDatabase();
     saveDatabase();
   }
+  // Sync live client records directly from Supabase Cloud on boot
+  syncFromSupabase().catch((err) => console.warn('[Supabase Initial Sync Error]', err));
 }
 
 initDatabase();
@@ -609,16 +683,12 @@ app.post('/api/signup', limiter, async (req, res) => {
 // FETCH USERS ROUTE
 app.get('/api/users', async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*');
-
-    if (error) {
-      return res.json(users.map((u) => ({ id: u.id, name: u.full_name, email: `${u.username}@greenworld.app` })));
-    }
-    return res.json(data && data.length > 0 ? data : users);
+    await syncFromSupabase();
+    const clientUsers = users.filter((u) => u.role === 'client');
+    return res.json(clientUsers);
   } catch (err: any) {
-    return res.json(users.map((u) => ({ id: u.id, name: u.full_name, email: `${u.username}@greenworld.app` })));
+    const clientUsers = users.filter((u) => u.role === 'client');
+    return res.json(clientUsers);
   }
 });
 
@@ -1136,7 +1206,8 @@ app.post('/api/admin/trigger-daily-profit', (req, res) => {
 });
 
 // Admin Get All Users
-app.get('/api/admin/users', (req, res) => {
+app.get('/api/admin/users', async (req, res) => {
+  await syncFromSupabase();
   const clientUsers = users.filter((u) => u.role === 'client');
   res.json({ users: clientUsers, totalCount: clientUsers.length });
 });

@@ -10,7 +10,7 @@ const supabaseKey =
   process.env.SUPABASE_KEY ||
   process.env.SUPABASE_ANON_KEY ||
   process.env.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy';
+  'sb_publishable_2zqEA4-fPxSYYkwuEka_Jg_hwpY0uMJ';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 

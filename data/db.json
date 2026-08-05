@@ -1,0 +1,187 @@
+{
+  "users": [
+    {
+      "id": "user-admin",
+      "full_name": "GreenWorld Owner",
+      "username": "greenworld2026",
+      "password": "Globalworld2026",
+      "phone": "+923000000000",
+      "referral_code": "GW2026",
+      "wallet_balance": 500000,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "admin",
+      "created_at": "2026-08-05T14:18:01.311+00:00"
+    },
+    {
+      "id": "user-1785776129406",
+      "full_name": "ali",
+      "username": "ali",
+      "password": "Client1234.",
+      "phone": "+92265685636",
+      "referral_code": "GWYKZ3",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-03T16:55:29.406+00:00"
+    },
+    {
+      "id": "user-1785777839313",
+      "full_name": "aman",
+      "username": "aman",
+      "password": "Client1234.",
+      "phone": "+9225265856",
+      "referral_code": "GW161290",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-03T17:23:59.313+00:00"
+    },
+    {
+      "id": "user-1785927807006",
+      "full_name": "Aman Raj",
+      "username": "aman raj",
+      "password": "Client1234.",
+      "phone": "+923362811536",
+      "referral_code": "GW259949",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T11:03:27.006+00:00"
+    },
+    {
+      "id": "user-1785927924948",
+      "full_name": "SYED khuram",
+      "username": "syed zada",
+      "password": "Client1234.",
+      "phone": "+9203248244623",
+      "referral_code": "GW438745",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T11:05:24.954+00:00"
+    },
+    {
+      "id": "user-1785934236704",
+      "full_name": "hamid zameer",
+      "username": "hamid",
+      "password": "Client1234.",
+      "phone": "+923363773373",
+      "referral_code": "GW79FH",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T12:50:36.704+00:00"
+    },
+    {
+      "id": "user-1785934288237",
+      "full_name": "Raj Aman",
+      "username": "raj aman",
+      "password": "Client1234.",
+      "phone": "+92333811631",
+      "referral_code": "GWLYHF",
+      "wallet_balance": 750,
+      "total_deposits": 15000,
+      "total_withdrawals": 0,
+      "daily_profit": 750,
+      "total_profit_earned": 750,
+      "role": "client",
+      "created_at": "2026-08-05T12:51:28.238+00:00"
+    },
+    {
+      "id": "user-1785934688714",
+      "full_name": "Kumar",
+      "username": "kumar",
+      "password": "Client1234.",
+      "phone": "+923332811536",
+      "referral_code": "GW471179",
+      "referred_by": "GWPXAT",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T12:58:08.714+00:00"
+    }
+  ],
+  "deposits": [
+    {
+      "id": "dep-101",
+      "user_id": "user-3",
+      "username": "zayan_pk",
+      "phone": "+923334567890",
+      "amount": 15000,
+      "payment_method": "EasyPaisa",
+      "screenshot_url": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22500%22%20viewBox%3D%220%200%20400%20500%22%3E%0A%20%20%20%20%3Crect%20width%3D%22400%22%20height%3D%22500%22%20fill%3D%22%230f172a%22%20rx%3D%2216%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22360%22%20height%3D%22460%22%20fill%3D%22%231e293b%22%20rx%3D%2212%22%20stroke%3D%22%2322c55e%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22200%22%20cy%3D%2280%22%20r%3D%2230%22%20fill%3D%22%2315803d%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M190%2080%20l7%207%20l15%20-15%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22140%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EPAYMENT%20SUCCESSFUL%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22165%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2394a3b8%22%20text-anchor%3D%22middle%22%3EGreenWorld%20Solar%20Deposit%20Proof%3C%2Ftext%3E%0A%20%20%20%20%3Cline%20x1%3D%2240%22%20y1%3D%22190%22%20x2%3D%22360%22%20y2%3D%22190%22%20stroke%3D%22%23334155%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAmount%20Transferred%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22end%22%3ERS%2015%2C000%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAccount%20Title%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EZayan%20Malik%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDestination%20Bank%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EMeezan%20Bank%20Ltd%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3ETransaction%20ID%20(TRX)%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%20fill%3D%22%2338bdf8%22%20text-anchor%3D%22end%22%3ETRX-96221920%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDate%20%26amp%3B%20Time%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%23cbd5e1%22%20text-anchor%3D%22end%22%3E8%2F5%2F2026%2C%2010%3A52%3A37%20AM%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%22410%22%20width%3D%22320%22%20height%3D%2240%22%20fill%3D%22%230f172a%22%20rx%3D%228%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22435%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EVerified%20Digital%20Payment%20Voucher%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
+      "status": "PENDING",
+      "created_at": "2026-08-05T10:52:37.819Z"
+    },
+    {
+      "id": "dep-100",
+      "user_id": "user-1",
+      "username": "ali_solar",
+      "phone": "+923001234567",
+      "amount": 20000,
+      "payment_method": "Bank Transfer (Meezan)",
+      "screenshot_url": "data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22400%22%20height%3D%22500%22%20viewBox%3D%220%200%20400%20500%22%3E%0A%20%20%20%20%3Crect%20width%3D%22400%22%20height%3D%22500%22%20fill%3D%22%230f172a%22%20rx%3D%2216%22%2F%3E%0A%20%20%20%20%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%22360%22%20height%3D%22460%22%20fill%3D%22%231e293b%22%20rx%3D%2212%22%20stroke%3D%22%2322c55e%22%20stroke-width%3D%222%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22200%22%20cy%3D%2280%22%20r%3D%2230%22%20fill%3D%22%2315803d%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M190%2080%20l7%207%20l15%20-15%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%223%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22140%22%20font-family%3D%22sans-serif%22%20font-size%3D%2220%22%20font-weight%3D%22bold%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EPAYMENT%20SUCCESSFUL%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22165%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2394a3b8%22%20text-anchor%3D%22middle%22%3EGreenWorld%20Solar%20Deposit%20Proof%3C%2Ftext%3E%0A%20%20%20%20%3Cline%20x1%3D%2240%22%20y1%3D%22190%22%20x2%3D%22360%22%20y2%3D%22190%22%20stroke%3D%22%23334155%22%20stroke-width%3D%221%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAmount%20Transferred%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22220%22%20font-family%3D%22sans-serif%22%20font-size%3D%2216%22%20font-weight%3D%22bold%22%20fill%3D%22%23ffffff%22%20text-anchor%3D%22end%22%3ERS%2020%2C000%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EAccount%20Title%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22260%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EMuhammad%20Ali%20Khan%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDestination%20Bank%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22300%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%23e2e8f0%22%20text-anchor%3D%22end%22%3EMeezan%20Bank%20Ltd%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3ETransaction%20ID%20(TRX)%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22340%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20font-weight%3D%22bold%22%20fill%3D%22%2338bdf8%22%20text-anchor%3D%22end%22%3ETRX-74189883%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%2250%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2213%22%20fill%3D%22%2394a3b8%22%3EDate%20%26amp%3B%20Time%3A%3C%2Ftext%3E%0A%20%20%20%20%3Ctext%20x%3D%22350%22%20y%3D%22380%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%23cbd5e1%22%20text-anchor%3D%22end%22%3E8%2F5%2F2026%2C%2010%3A52%3A37%20AM%3C%2Ftext%3E%0A%20%20%20%20%3Crect%20x%3D%2240%22%20y%3D%22410%22%20width%3D%22320%22%20height%3D%2240%22%20fill%3D%22%230f172a%22%20rx%3D%228%22%2F%3E%0A%20%20%20%20%3Ctext%20x%3D%22200%22%20y%3D%22435%22%20font-family%3D%22sans-serif%22%20font-size%3D%2212%22%20fill%3D%22%2322c55e%22%20text-anchor%3D%22middle%22%3EVerified%20Digital%20Payment%20Voucher%3C%2Ftext%3E%0A%20%20%3C%2Fsvg%3E",
+      "status": "APPROVED",
+      "created_at": "2026-07-29T10:52:37.820Z",
+      "approved_at": "2026-07-29T10:52:37.820Z"
+    }
+  ],
+  "withdrawals": [
+    {
+      "id": "wd-201",
+      "user_id": "user-1",
+      "username": "ali_solar",
+      "phone": "+923001234567",
+      "amount": 3500,
+      "bank_name": "Meezan Bank Limited",
+      "account_holder": "Muhammad Ali Khan",
+      "account_number": "PK36MEZN00098234102931",
+      "status": "PENDING",
+      "created_at": "2026-08-05T10:52:37.820Z"
+    }
+  ],
+  "investments": [
+    {
+      "id": "inv-1",
+      "user_id": "user-1",
+      "package_id": "pkg-2",
+      "package_name": "Rooftop Solar Array 500W",
+      "amount_rs": 5000,
+      "daily_return_rs": 250,
+      "purchased_at": "2026-07-31T10:52:37.820Z"
+    }
+  ],
+  "ownerSettings": {
+    "bank_name": "Meezan Bank Limited",
+    "account_title": "GreenWorld Solar Energy Pvt Ltd",
+    "iban_account": "PK36MEZN00010982347101",
+    "easypaisa_number": "0300-8829102",
+    "easypaisa_name": "GreenWorld EasyPaisa Business",
+    "jazzcash_number": "0301-9982310",
+    "jazzcash_name": "GreenWorld JazzCash Official",
+    "deposit_instructions": "Please send exact amount in RS to official payment destination.",
+    "whatsapp_number": "+923008829102"
+  },
+  "updated_at": "2026-08-05T16:05:55.779Z"
+}

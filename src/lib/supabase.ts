@@ -17,8 +17,8 @@ const getEnvVar = (key: string, viteKey: string): string => {
 const DEFAULT_SUPABASE_URL = 'https://mxgputlyhoxejkinyblq.supabase.co';
 // Secret API key read from environment variables or fallback to dummy key to prevent runtime throw
 const DEFAULT_SUPABASE_KEY =
-  (typeof process !== 'undefined' && process.env ? process.env.SUPABASE_API_KEY || process.env.SUPABASE_KEY : '') ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy';
+  (typeof process !== 'undefined' && process.env ? process.env.SUPABASE_API_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY : '') ||
+  'sb_publishable_2zqEA4-fPxSYYkwuEka_Jg_hwpY0uMJ';
 
 const supabaseUrl = getEnvVar('SUPABASE_URL', 'VITE_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
 const supabaseKey =
