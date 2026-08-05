@@ -846,10 +846,15 @@ app.post('/api/client/login', limiter, async (req, res) => {
 });
 
 // 3. Get User Profile & Referral Data
-app.get('/api/client/profile/:userId', (req, res) => {
+app.get('/api/client/profile/:userId', async (req, res) => {
   checkAndReturnExpiredInvestments();
   const { userId } = req.params;
-  const user = users.find((u) => u.id === userId);
+  let user = users.find((u) => u.id === userId);
+
+  if (!user) {
+    await syncFromSupabase();
+    user = users.find((u) => u.id === userId);
+  }
 
   if (!user) {
     return res.status(404).json({ error: 'User not found.' });
