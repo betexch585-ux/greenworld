@@ -612,11 +612,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   <table className="w-full text-left text-xs">
                     <thead className="bg-slate-50 text-slate-500 border-b border-slate-100 uppercase tracking-wider font-bold text-[11px]">
                       <tr>
-                        <th className="p-4">Referred Username</th>
+                        <th className="p-4">Referred Member</th>
+                        <th className="p-4">Network Level</th>
                         <th className="p-4">Phone Number</th>
                         <th className="p-4">Joined Date</th>
                         <th className="p-4">Total Deposited</th>
-                        <th className="p-4">Your 10% Commission</th>
+                        <th className="p-4">Commission Bonus</th>
                         <th className="p-4">Status</th>
                       </tr>
                     </thead>
@@ -624,10 +625,21 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                       {referrals.map((r) => (
                         <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="p-4 font-bold text-slate-900">{r.referred_username}</td>
+                          <td className="p-4">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                                r.level === 2
+                                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              }`}
+                            >
+                              {r.level === 2 ? 'Level 2 (Indirect)' : 'Level 1 (Direct)'}
+                            </span>
+                          </td>
                           <td className="p-4 font-mono text-slate-600">{r.referred_phone}</td>
                           <td className="p-4 text-slate-500">{new Date(r.joined_at).toLocaleDateString()}</td>
-                          <td className="p-4 font-mono font-semibold">RS {r.total_deposits.toLocaleString()}</td>
-                          <td className="p-4 font-mono font-bold text-emerald-600">+RS {r.commission_earned_rs.toLocaleString()}</td>
+                          <td className="p-4 font-mono font-semibold">RS {(r.total_deposits || 0).toLocaleString()}</td>
+                          <td className="p-4 font-mono font-bold text-emerald-600">+RS {(r.commission_earned_rs || 0).toLocaleString()}</td>
                           <td className="p-4">
                             <span
                               className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${

@@ -244,6 +244,18 @@ async function syncUserToSupabase(user: UserRecord) {
   }
 }
 
+// Helper to robustly find an inviter for any user by referral_code, username, or ID
+function findInviter(referredByStr?: string): UserRecord | undefined {
+  if (!referredByStr || !referredByStr.trim()) return undefined;
+  const clean = referredByStr.trim().toUpperCase();
+  return users.find(
+    (u) =>
+      (u.referral_code && u.referral_code.trim().toUpperCase() === clean) ||
+      (u.username && u.username.trim().toUpperCase() === clean) ||
+      (u.id && u.id.trim().toUpperCase() === clean)
+  );
+}
+
 // Synchronize and load users directly from Supabase Cloud Database
 async function syncFromSupabase() {
   try {
@@ -620,54 +632,42 @@ function processDailyReturns() {
     }
   });
 
-  // 2. Process Multi-Tier Chain Profit System for Referrers
-  // Level 1: Referrer gets 3% of all direct downline clients' active invested amounts
-  // Level 2: Referrer gets 1.5% of Level 2 downline clients' active invested amounts
-  // Level 3: Referrer gets 0.5% of Level 3 downline clients' active invested amounts
+  // 2. Process 2-Tier Chain Profit System for Referrers
+  // Level 1: Referrer gets 3% of direct downline clients' active invested amounts (or wallet balance/deposits)
+  // Level 2: Referrer gets 1.5% of Level 2 downline clients' active invested amounts (or wallet balance/deposits)
+  // Level 3 is removed completely as requested.
   users.forEach((referrer) => {
     if (referrer.role === 'client' || referrer.role === 'admin') {
-      const refCode = referrer.referral_code?.trim().toUpperCase();
-      if (!refCode) return;
-
       let referrerChainBonus = 0;
 
       // Level 1 Direct Referrals (3% of active invested amount)
-      const l1Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === refCode);
+      const l1Users = users.filter((u) => {
+        const inv = findInviter(u.referred_by);
+        return inv && inv.id === referrer.id;
+      });
+
       l1Users.forEach((l1) => {
         const l1Invs = investments.filter((i) => i.user_id === l1.id);
         const l1InvestedAmount = l1Invs.reduce((sum, i) => sum + i.amount_rs, 0);
-        const baseAmount = l1InvestedAmount > 0 ? l1InvestedAmount : (l1.wallet_balance > 0 ? l1.wallet_balance : l1.total_deposits);
-        if (baseAmount > 0) {
-          referrerChainBonus += Math.round(baseAmount * 0.03); // 3% Level 1 Chain Bonus
+        const l1Base = l1InvestedAmount > 0 ? l1InvestedAmount : (l1.wallet_balance > 0 ? l1.wallet_balance : l1.total_deposits);
+        if (l1Base > 0) {
+          referrerChainBonus += Math.round(l1Base * 0.03); // 3% Level 1 Chain Bonus
         }
 
-        // Level 2 Referrals (1.5% of active invested amount)
-        const l1Code = l1.referral_code?.trim().toUpperCase();
-        if (l1Code) {
-          const l2Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === l1Code);
-          l2Users.forEach((l2) => {
-            const l2Invs = investments.filter((i) => i.user_id === l2.id);
-            const l2InvestedAmount = l2Invs.reduce((sum, i) => sum + i.amount_rs, 0);
-            const l2Base = l2InvestedAmount > 0 ? l2InvestedAmount : (l2.wallet_balance > 0 ? l2.wallet_balance : l2.total_deposits);
-            if (l2Base > 0) {
-              referrerChainBonus += Math.round(l2Base * 0.015); // 1.5% Level 2 Chain Bonus
-            }
+        // Level 2 Indirect Referrals (1.5% of active invested amount)
+        const l2Users = users.filter((u) => {
+          const inv = findInviter(u.referred_by);
+          return inv && inv.id === l1.id;
+        });
 
-            // Level 3 Referrals (0.5% of active invested amount)
-            const l2Code = l2.referral_code?.trim().toUpperCase();
-            if (l2Code) {
-              const l3Users = users.filter((u) => u.referred_by?.trim().toUpperCase() === l2Code);
-              l3Users.forEach((l3) => {
-                const l3Invs = investments.filter((i) => i.user_id === l3.id);
-                const l3InvestedAmount = l3Invs.reduce((sum, i) => sum + i.amount_rs, 0);
-                const l3Base = l3InvestedAmount > 0 ? l3InvestedAmount : (l3.wallet_balance > 0 ? l3.wallet_balance : l3.total_deposits);
-                if (l3Base > 0) {
-                  referrerChainBonus += Math.round(l3Base * 0.005); // 0.5% Level 3 Chain Bonus
-                }
-              });
-            }
-          });
-        }
+        l2Users.forEach((l2) => {
+          const l2Invs = investments.filter((i) => i.user_id === l2.id);
+          const l2InvestedAmount = l2Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+          const l2Base = l2InvestedAmount > 0 ? l2InvestedAmount : (l2.wallet_balance > 0 ? l2.wallet_balance : l2.total_deposits);
+          if (l2Base > 0) {
+            referrerChainBonus += Math.round(l2Base * 0.015); // 1.5% Level 2 Chain Bonus
+          }
+        });
       });
 
       if (referrerChainBonus > 0) {
@@ -677,7 +677,7 @@ function processDailyReturns() {
         totalDistributed += referrerChainBonus;
         chainBonusCount++;
         syncUserToSupabase(referrer).catch(() => {});
-        console.log(`[CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from downline network investments.`);
+        console.log(`[2-LEVEL CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from 2-tier downline network.`);
       }
     }
   });
@@ -757,12 +757,11 @@ app.post('/api/client/register', limiter, async (req, res) => {
   // Validate referral inviter if supplied
   let inviterCode: string | undefined = undefined;
   if (referral_code && referral_code.trim()) {
-    const trimmed = referral_code.trim().toUpperCase();
-    const inviter = users.find((u) => u.referral_code.trim().toUpperCase() === trimmed);
+    const inviter = findInviter(referral_code);
     if (inviter) {
       inviterCode = inviter.referral_code;
     } else {
-      inviterCode = trimmed;
+      inviterCode = referral_code.trim().toUpperCase();
     }
   }
 
@@ -908,32 +907,65 @@ app.get('/api/client/profile/:userId', async (req, res) => {
     return res.status(404).json({ error: 'User not found.' });
   }
 
-  // Find direct referrals
-  const directReferrals = users
-    .filter((u) => u.referred_by?.trim().toUpperCase() === user.referral_code.trim().toUpperCase())
-    .map((r) => {
+  // Find Level 1 Direct Referrals
+  const l1Members = users.filter((u) => {
+    const inv = findInviter(u.referred_by);
+    return inv && inv.id === user.id;
+  });
+
+  // Find Level 2 Indirect Referrals
+  const l2Members: UserRecord[] = [];
+  l1Members.forEach((l1) => {
+    const l2s = users.filter((u) => {
+      const inv = findInviter(u.referred_by);
+      return inv && inv.id === l1.id;
+    });
+    l2Members.push(...l2s);
+  });
+
+  const referralList = [
+    ...l1Members.map((r) => {
       const rInvs = investments.filter((i) => i.user_id === r.id);
       const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
-      const commission = Math.round(totalInvAmount * 0.1);
+      const base = totalInvAmount > 0 ? totalInvAmount : (r.wallet_balance > 0 ? r.wallet_balance : r.total_deposits);
+      const commission = Math.round(base * 0.10);
       return {
         id: r.id,
         referred_username: r.username,
         referred_phone: r.phone,
         joined_at: r.created_at,
-        total_deposits: r.total_deposits,
+        total_deposits: r.total_deposits || 0,
         commission_earned_rs: commission,
-        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
+        level: 1,
+        status: rInvs.length > 0 || r.wallet_balance > 0 ? ('Active' as const) : ('Pending' as const),
       };
-    });
+    }),
+    ...l2Members.map((r) => {
+      const rInvs = investments.filter((i) => i.user_id === r.id);
+      const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
+      const base = totalInvAmount > 0 ? totalInvAmount : (r.wallet_balance > 0 ? r.wallet_balance : r.total_deposits);
+      const commission = Math.round(base * 0.05);
+      return {
+        id: r.id,
+        referred_username: r.username,
+        referred_phone: r.phone,
+        joined_at: r.created_at,
+        total_deposits: r.total_deposits || 0,
+        commission_earned_rs: commission,
+        level: 2,
+        status: rInvs.length > 0 || r.wallet_balance > 0 ? ('Active' as const) : ('Pending' as const),
+      };
+    }),
+  ];
 
-  const totalReferralEarnings = directReferrals.reduce((sum, r) => sum + r.commission_earned_rs, 0);
+  const totalReferralEarnings = referralList.reduce((sum, r) => sum + r.commission_earned_rs, 0);
 
   // User investments
   const userInvestments = investments.filter((i) => i.user_id === user.id);
 
   res.json({
     user,
-    referrals: directReferrals,
+    referrals: referralList,
     referral_earnings_rs: totalReferralEarnings,
     investments: userInvestments,
   });
@@ -1067,16 +1099,23 @@ app.post('/api/client/invest', (req, res) => {
 
   user.wallet_balance -= pkg.price_rs;
 
-  // Credit 10% referral commission to inviter wallet whenever a referred user buys an investment plan
-  if (user.referred_by && user.referred_by.trim()) {
-    const inviter = users.find((u) => u.referral_code.trim().toUpperCase() === user.referred_by?.trim().toUpperCase());
-    if (inviter) {
-      const referralBonus = Math.round(pkg.price_rs * 0.1); // 10% bonus of plan price
-      inviter.wallet_balance += referralBonus;
-      inviter.total_profit_earned = (inviter.total_profit_earned || 0) + referralBonus;
-      user.first_investment_bonus_paid = true;
-      syncUserToSupabase(inviter).catch(() => {});
-      console.log(`[REFERRAL BONUS] Inviter ${inviter.username} credited 10% (RS ${referralBonus}) for ${user.username}'s investment plan (${pkg.name}).`);
+  // Credit referral commission to Level 1 (10%) and Level 2 (5%) inviters when a user buys an investment plan
+  const l1Inviter = findInviter(user.referred_by);
+  if (l1Inviter) {
+    const l1Bonus = Math.round(pkg.price_rs * 0.10); // 10% for Level 1
+    l1Inviter.wallet_balance += l1Bonus;
+    l1Inviter.total_profit_earned = (l1Inviter.total_profit_earned || 0) + l1Bonus;
+    user.first_investment_bonus_paid = true;
+    syncUserToSupabase(l1Inviter).catch(() => {});
+    console.log(`[LEVEL 1 BONUS] Inviter ${l1Inviter.username} credited 10% (RS ${l1Bonus}) for ${user.username}'s plan purchase (${pkg.name}).`);
+
+    const l2Inviter = findInviter(l1Inviter.referred_by);
+    if (l2Inviter) {
+      const l2Bonus = Math.round(pkg.price_rs * 0.05); // 5% for Level 2
+      l2Inviter.wallet_balance += l2Bonus;
+      l2Inviter.total_profit_earned = (l2Inviter.total_profit_earned || 0) + l2Bonus;
+      syncUserToSupabase(l2Inviter).catch(() => {});
+      console.log(`[LEVEL 2 BONUS] Level 2 Inviter ${l2Inviter.username} credited 5% (RS ${l2Bonus}) for ${user.username}'s plan purchase (${pkg.name}).`);
     }
   }
 

@@ -84,7 +84,9 @@ export interface ReferralRecord {
   referred_username: string;
   referred_phone: string;
   joined_at: string;
+  total_deposits: number;
   commission_earned_rs: number;
+  level?: number; // 1 = Direct, 2 = Indirect
   status: 'Active' | 'Pending';
 }
 
