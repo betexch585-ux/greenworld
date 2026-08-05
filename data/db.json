@@ -120,6 +120,21 @@
       "total_profit_earned": 0,
       "role": "client",
       "created_at": "2026-08-05T12:58:08.714+00:00"
+    },
+    {
+      "id": "user-1785947060687",
+      "full_name": "ramesh",
+      "username": "ramesh",
+      "password": "ramesh",
+      "phone": "+925634578985",
+      "referral_code": "GWGR8K",
+      "wallet_balance": 0,
+      "total_deposits": 0,
+      "total_withdrawals": 0,
+      "daily_profit": 0,
+      "total_profit_earned": 0,
+      "role": "client",
+      "created_at": "2026-08-05T16:24:20.687+00:00"
     }
   ],
   "deposits": [
@@ -183,5 +198,5 @@
     "deposit_instructions": "Please send exact amount in RS to official payment destination.",
     "whatsapp_number": "+923008829102"
   },
-  "updated_at": "2026-08-05T16:19:18.045Z"
+  "updated_at": "2026-08-05T16:41:45.182Z"
 }
