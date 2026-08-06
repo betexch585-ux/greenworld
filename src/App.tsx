@@ -355,13 +355,14 @@ export default function App() {
         console.warn('[Admin Users API Fallback]');
       }
 
-      const localUsersStr = localStorage.getItem('gw_registered_users');
-      const localUsers: User[] = localUsersStr ? JSON.parse(localUsersStr) : [];
-      const userMap = new Map<string, User>();
-      [...serverUsers, ...localUsers].forEach((u) => userMap.set(u.id || u.username, u));
-      const combinedUsers = Array.from(userMap.values());
-
-      setUsersList(combinedUsers);
+      if (serverUsers.length > 0) {
+        setUsersList(serverUsers);
+        localStorage.setItem('gw_registered_users', JSON.stringify(serverUsers));
+      } else {
+        const localUsersStr = localStorage.getItem('gw_registered_users');
+        const localUsers: User[] = localUsersStr ? JSON.parse(localUsersStr) : [];
+        setUsersList(localUsers);
+      }
 
       // 4. Owner Settings
       try {

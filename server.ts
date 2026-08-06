@@ -273,22 +273,23 @@ async function syncFromSupabase() {
         );
 
         if (existingIndex >= 0) {
-          // Update existing user with Supabase state while keeping local password if missing in SB
+          const localU = users[existingIndex];
+          // Update existing user with Supabase state safely without overwriting local financial progress
           users[existingIndex] = {
-            ...users[existingIndex],
-            full_name: sbUser.full_name || users[existingIndex].full_name,
-            username: sbUser.username || users[existingIndex].username,
-            password: sbUser.password || users[existingIndex].password || 'Client1234.',
-            phone: sbUser.phone || users[existingIndex].phone,
-            wallet_balance: typeof sbUser.wallet_balance === 'number' ? sbUser.wallet_balance : users[existingIndex].wallet_balance,
-            total_deposits: typeof sbUser.total_deposits === 'number' ? sbUser.total_deposits : users[existingIndex].total_deposits,
-            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? sbUser.total_withdrawals : users[existingIndex].total_withdrawals,
-            daily_profit: typeof sbUser.daily_profit === 'number' ? sbUser.daily_profit : users[existingIndex].daily_profit,
-            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? sbUser.total_profit_earned : users[existingIndex].total_profit_earned,
-            role: sbUser.role || users[existingIndex].role || 'client',
-            referral_code: sbUser.referral_code || users[existingIndex].referral_code,
-            referred_by: sbUser.referred_by || users[existingIndex].referred_by,
-            created_at: sbUser.created_at || users[existingIndex].created_at,
+            ...localU,
+            full_name: sbUser.full_name || localU.full_name,
+            username: sbUser.username || localU.username,
+            password: sbUser.password || localU.password || 'Client1234.',
+            phone: sbUser.phone || localU.phone,
+            wallet_balance: typeof sbUser.wallet_balance === 'number' ? Math.max(localU.wallet_balance || 0, sbUser.wallet_balance) : localU.wallet_balance,
+            total_deposits: typeof sbUser.total_deposits === 'number' ? Math.max(localU.total_deposits || 0, sbUser.total_deposits) : localU.total_deposits,
+            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? Math.max(localU.total_withdrawals || 0, sbUser.total_withdrawals) : localU.total_withdrawals,
+            daily_profit: typeof sbUser.daily_profit === 'number' ? Math.max(localU.daily_profit || 0, sbUser.daily_profit) : localU.daily_profit,
+            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? Math.max(localU.total_profit_earned || 0, sbUser.total_profit_earned) : localU.total_profit_earned,
+            role: sbUser.role || localU.role || 'client',
+            referral_code: sbUser.referral_code || localU.referral_code,
+            referred_by: (localU.referred_by && localU.referred_by !== 'undefined') ? localU.referred_by : (sbUser.referred_by && sbUser.referred_by !== 'undefined' ? sbUser.referred_by : undefined),
+            created_at: sbUser.created_at || localU.created_at,
           };
         } else {
           // Add brand new user from Supabase
