@@ -602,6 +602,14 @@ function checkAndReturnExpiredInvestments() {
 }
 
 // Daily Midnight Background Cron Job (Adds Dynamic Package Daily Profit & Chain Referral Profit)
+// Helper to get total active invested plan amount for a user (checks explicit investments, falling back to total deposits for existing accounts)
+function getUserInvestedAmount(u: UserRecord): number {
+  const uInvs = investments.filter((i) => i.user_id === u.id);
+  const totalInv = uInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
+  if (totalInv > 0) return totalInv;
+  return u.total_deposits || 0;
+}
+
 function processDailyReturns() {
   checkAndReturnExpiredInvestments();
   console.log('[CRON] Running Midnight Dynamic Package Yield + Chain Profit Calculation...');
@@ -615,8 +623,10 @@ function processDailyReturns() {
       const userInvs = investments.filter((inv) => inv.user_id === u.id);
       const totalPackageYield = userInvs.reduce((sum, inv) => sum + inv.daily_return_rs, 0);
 
-      // Profit is strictly credited for active package investments
-      const profitToCredit = totalPackageYield;
+      // Profit is credited for active package investments (or active deposited plan for existing accounts)
+      const profitToCredit = totalPackageYield > 0
+        ? totalPackageYield
+        : (u.total_deposits > 0 ? Math.round(u.total_deposits * 0.05) : 0);
 
       if (profitToCredit > 0) {
         u.wallet_balance += profitToCredit;
@@ -643,8 +653,7 @@ function processDailyReturns() {
       });
 
       l1Users.forEach((l1) => {
-        const l1Invs = investments.filter((i) => i.user_id === l1.id);
-        const l1InvestedAmount = l1Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+        const l1InvestedAmount = getUserInvestedAmount(l1);
         if (l1InvestedAmount > 0) {
           referrerChainBonus += Math.round(l1InvestedAmount * 0.03); // Exact 3% Level 1 Chain Bonus
         }
@@ -656,8 +665,7 @@ function processDailyReturns() {
         });
 
         l2Users.forEach((l2) => {
-          const l2Invs = investments.filter((i) => i.user_id === l2.id);
-          const l2InvestedAmount = l2Invs.reduce((sum, i) => sum + i.amount_rs, 0);
+          const l2InvestedAmount = getUserInvestedAmount(l2);
           if (l2InvestedAmount > 0) {
             referrerChainBonus += Math.round(l2InvestedAmount * 0.015); // Exact 1.5% Level 2 Chain Bonus
           }
@@ -919,8 +927,7 @@ app.get('/api/client/profile/:userId', async (req, res) => {
 
   const referralList = [
     ...l1Members.map((r) => {
-      const rInvs = investments.filter((i) => i.user_id === r.id);
-      const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
+      const totalInvAmount = getUserInvestedAmount(r);
       const commission = Math.round(totalInvAmount * 0.10);
       return {
         id: r.id,
@@ -930,12 +937,11 @@ app.get('/api/client/profile/:userId', async (req, res) => {
         total_deposits: r.total_deposits || 0,
         commission_earned_rs: commission,
         level: 1,
-        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
+        status: totalInvAmount > 0 ? ('Active' as const) : ('Pending' as const),
       };
     }),
     ...l2Members.map((r) => {
-      const rInvs = investments.filter((i) => i.user_id === r.id);
-      const totalInvAmount = rInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
+      const totalInvAmount = getUserInvestedAmount(r);
       const commission = Math.round(totalInvAmount * 0.05);
       return {
         id: r.id,
@@ -945,7 +951,7 @@ app.get('/api/client/profile/:userId', async (req, res) => {
         total_deposits: r.total_deposits || 0,
         commission_earned_rs: commission,
         level: 2,
-        status: rInvs.length > 0 ? ('Active' as const) : ('Pending' as const),
+        status: totalInvAmount > 0 ? ('Active' as const) : ('Pending' as const),
       };
     }),
   ];
