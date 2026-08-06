@@ -39,32 +39,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Site Switcher Tabs */}
-          <div className="flex items-center bg-slate-100/80 p-0.5 sm:p-1 rounded-xl sm:rounded-2xl border border-slate-200/80 shrink-0">
+          {/* Site Switcher Tabs - Admin button hidden from upside, kept in downside footer */}
+          {activeView === 'admin' && (
             <button
               onClick={() => setActiveView('client')}
-              className={`flex items-center gap-1 px-2 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all ${
-                activeView === 'client'
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-emerald-800 hover:bg-slate-200/60'
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all"
             >
-              <UserIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>Client</span>
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>Client View</span>
             </button>
-
-            <button
-              onClick={() => setActiveView('admin')}
-              className={`flex items-center gap-1 px-2 py-1 sm:px-3.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all ${
-                activeView === 'admin'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-amber-800 hover:bg-slate-200/60'
-              }`}
-            >
-              <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>Admin</span>
-            </button>
-          </div>
+          )}
 
           {/* User Controls & Logout Toggle */}
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
