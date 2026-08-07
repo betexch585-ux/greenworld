@@ -222,7 +222,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
           <Users className="w-5 h-5 text-emerald-600" /> Referral Network &amp; Direct Bonus
         </h3>
         <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
-          Earn a 10% cash bonus credited directly to your wallet whenever your invited friend purchases an investment package, plus multi-tier daily chain profit yields!
+          Earn a 10% instant cash bonus credited directly to your wallet whenever your invited friend purchases an investment package, plus 3% daily chain profit yields!
         </p>
 
         {/* Single Centered Referral Code Box */}
@@ -556,7 +556,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   {user.referral_code}
                 </p>
                 <p className="text-xs text-emerald-100 mt-1 font-medium">
-                  Invite friends and earn 10% cash bonus on every package purchase + multi-tier daily chain profits!
+                  Invite friends and earn 10% instant cash bonus on package purchases + 3% daily team chain profits!
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -626,14 +626,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                         <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="p-4 font-bold text-slate-900">{r.referred_username}</td>
                           <td className="p-4">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                                r.level === 2
-                                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              }`}
-                            >
-                              {r.level === 2 ? 'Level 2 (Indirect)' : 'Level 1 (Direct)'}
+                            <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              Level 1 (Direct)
                             </span>
                           </td>
                           <td className="p-4 font-mono text-slate-600">{r.referred_phone}</td>

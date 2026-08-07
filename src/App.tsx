@@ -693,7 +693,7 @@ export default function App() {
             users[uIdx].wallet_balance -= pkg.price_rs;
             users[uIdx].daily_profit = (users[uIdx].daily_profit || 0) + pkg.daily_return_rs;
 
-            // Level 1 (10%) and Level 2 (5%) referral bonus on investment plan purchase
+            // Level 1 (10%) referral bonus on investment plan purchase
             if (users[uIdx].referred_by && users[uIdx].referred_by?.trim()) {
               const refByClean = users[uIdx].referred_by?.trim().toUpperCase();
               const l1Idx = users.findIndex(
@@ -706,21 +706,6 @@ export default function App() {
                 const bonus1 = Math.round(pkg.price_rs * 0.10);
                 users[l1Idx].wallet_balance += bonus1;
                 users[l1Idx].total_profit_earned = (users[l1Idx].total_profit_earned || 0) + bonus1;
-
-                if (users[l1Idx].referred_by && users[l1Idx].referred_by?.trim()) {
-                  const l1RefByClean = users[l1Idx].referred_by?.trim().toUpperCase();
-                  const l2Idx = users.findIndex(
-                    (u) =>
-                      u.referral_code?.trim().toUpperCase() === l1RefByClean ||
-                      u.username?.trim().toUpperCase() === l1RefByClean ||
-                      u.id?.trim().toUpperCase() === l1RefByClean
-                  );
-                  if (l2Idx >= 0) {
-                    const bonus2 = Math.round(pkg.price_rs * 0.05);
-                    users[l2Idx].wallet_balance += bonus2;
-                    users[l2Idx].total_profit_earned = (users[l2Idx].total_profit_earned || 0) + bonus2;
-                  }
-                }
               }
             }
 

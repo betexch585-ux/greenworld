@@ -244,6 +244,29 @@ async function syncUserToSupabase(user: UserRecord) {
   }
 }
 
+// Sync investment record to Supabase in realtime
+async function syncInvestmentToSupabase(inv: InvestmentRecord) {
+  try {
+    const payload = {
+      id: inv.id,
+      user_id: inv.user_id,
+      package_id: inv.package_id,
+      package_name: inv.package_name,
+      amount_rs: inv.amount_rs,
+      daily_return_rs: inv.daily_return_rs,
+      purchased_at: inv.purchased_at,
+    };
+    const { error } = await supabase.from('investments').upsert([payload], { onConflict: 'id' });
+    if (error) {
+      console.warn('[Supabase Investment Sync Warning]:', error.message);
+    } else {
+      console.log(`[Supabase Sync] Investment ${inv.id} (${inv.package_name}) synced to Supabase.`);
+    }
+  } catch (err: any) {
+    console.warn('[Supabase Investment Sync Exception]:', err?.message);
+  }
+}
+
 // Helper to robustly find an inviter for any user by referral_code, username, or ID
 function findInviter(referredByStr?: string): UserRecord | undefined {
   if (!referredByStr || !referredByStr.trim()) return undefined;
@@ -256,7 +279,7 @@ function findInviter(referredByStr?: string): UserRecord | undefined {
   );
 }
 
-// Synchronize and load users directly from Supabase Cloud Database
+// Synchronize and load users and active investments directly from Supabase Cloud Database
 async function syncFromSupabase() {
   try {
     const { data: sbUsers, error } = await supabase.from('users').select('*');
@@ -320,8 +343,30 @@ async function syncFromSupabase() {
         users = users.filter((u) => !['user-1', 'user-2', 'user-3'].includes(u.id));
       }
 
+      // Restore active investments from Supabase if available
+      try {
+        const { data: sbInvs, error: invErr } = await supabase.from('investments').select('*');
+        if (!invErr && Array.isArray(sbInvs) && sbInvs.length > 0) {
+          for (const sbInv of sbInvs) {
+            if (!investments.some((i) => i.id === sbInv.id)) {
+              investments.push({
+                id: sbInv.id,
+                user_id: sbInv.user_id,
+                package_id: sbInv.package_id,
+                package_name: sbInv.package_name,
+                amount_rs: Number(sbInv.amount_rs) || 0,
+                daily_return_rs: Number(sbInv.daily_return_rs) || 0,
+                purchased_at: sbInv.purchased_at || new Date().toISOString(),
+              });
+            }
+          }
+        }
+      } catch (invEx) {
+        console.warn('[Supabase Investment Sync Exception]:', invEx);
+      }
+
       saveDatabase();
-      console.log(`[Supabase Live Sync] Successfully synced ${sbUsers.length} records from Supabase (${realClientsAdded} new clients loaded).`);
+      console.log(`[Supabase Live Sync] Successfully synced ${sbUsers.length} records & ${investments.length} investments from Supabase.`);
     }
   } catch (err: any) {
     console.warn('[Supabase Sync From Catch]:', err?.message);
@@ -603,12 +648,10 @@ function checkAndReturnExpiredInvestments() {
 }
 
 // Daily Midnight Background Cron Job (Adds Dynamic Package Daily Profit & Chain Referral Profit)
-// Helper to get total active invested plan amount for a user (checks explicit investments, falling back to total deposits for existing accounts)
+// Helper to get total active invested plan amount for a user
 function getUserInvestedAmount(u: UserRecord): number {
   const uInvs = investments.filter((i) => i.user_id === u.id);
-  const totalInv = uInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
-  if (totalInv > 0) return totalInv;
-  return u.total_deposits || 0;
+  return uInvs.reduce((sum, inv) => sum + inv.amount_rs, 0);
 }
 
 function processDailyReturns() {
@@ -624,10 +667,8 @@ function processDailyReturns() {
       const userInvs = investments.filter((inv) => inv.user_id === u.id);
       const totalPackageYield = userInvs.reduce((sum, inv) => sum + inv.daily_return_rs, 0);
 
-      // Profit is credited for active package investments (or active deposited plan for existing accounts)
-      const profitToCredit = totalPackageYield > 0
-        ? totalPackageYield
-        : (u.total_deposits > 0 ? Math.round(u.total_deposits * 0.05) : 0);
+      // Profit is credited ONLY for active purchased package investments
+      const profitToCredit = totalPackageYield;
 
       if (profitToCredit > 0) {
         u.wallet_balance += profitToCredit;
@@ -640,14 +681,13 @@ function processDailyReturns() {
     }
   });
 
-  // 2. Process 2-Tier Chain Profit System for Referrers
-  // Level 1: Referrer gets EXACT 3% of direct downline clients' active invested plan amounts
-  // Level 2: Referrer gets EXACT 1.5% of Level 2 downline clients' active invested plan amounts
+  // 2. Process Level 1 Chain Profit System for Referrers
+  // Level 1: Referrer gets EXACT 3% of direct downline clients' active invested plan / deposit amounts
   users.forEach((referrer) => {
     if (referrer.role === 'client' || referrer.role === 'admin') {
       let referrerChainBonus = 0;
 
-      // Level 1 Direct Referrals (Exact 3% of active invested plan amount)
+      // Level 1 Direct Referrals ONLY (Exact 3% of active invested plan or deposit amount)
       const l1Users = users.filter((u) => {
         const inv = findInviter(u.referred_by);
         return inv && inv.id === referrer.id;
@@ -658,19 +698,6 @@ function processDailyReturns() {
         if (l1InvestedAmount > 0) {
           referrerChainBonus += Math.round(l1InvestedAmount * 0.03); // Exact 3% Level 1 Chain Bonus
         }
-
-        // Level 2 Indirect Referrals (Exact 1.5% of active invested plan amount)
-        const l2Users = users.filter((u) => {
-          const inv = findInviter(u.referred_by);
-          return inv && inv.id === l1.id;
-        });
-
-        l2Users.forEach((l2) => {
-          const l2InvestedAmount = getUserInvestedAmount(l2);
-          if (l2InvestedAmount > 0) {
-            referrerChainBonus += Math.round(l2InvestedAmount * 0.015); // Exact 1.5% Level 2 Chain Bonus
-          }
-        });
       });
 
       if (referrerChainBonus > 0) {
@@ -680,7 +707,7 @@ function processDailyReturns() {
         totalDistributed += referrerChainBonus;
         chainBonusCount++;
         syncUserToSupabase(referrer).catch(() => {});
-        console.log(`[2-LEVEL CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from 2-tier downline network active plan investments.`);
+        console.log(`[LEVEL 1 CHAIN PROFIT] Referrer ${referrer.username} credited RS ${referrerChainBonus} from Level 1 direct referrals.`);
       }
     }
   });
@@ -910,52 +937,26 @@ app.get('/api/client/profile/:userId', async (req, res) => {
     return res.status(404).json({ error: 'User not found.' });
   }
 
-  // Find Level 1 Direct Referrals
+  // Find Level 1 Direct Referrals ONLY
   const l1Members = users.filter((u) => {
     const inv = findInviter(u.referred_by);
     return inv && inv.id === user.id;
   });
 
-  // Find Level 2 Indirect Referrals
-  const l2Members: UserRecord[] = [];
-  l1Members.forEach((l1) => {
-    const l2s = users.filter((u) => {
-      const inv = findInviter(u.referred_by);
-      return inv && inv.id === l1.id;
-    });
-    l2Members.push(...l2s);
+  const referralList = l1Members.map((r) => {
+    const totalInvAmount = getUserInvestedAmount(r);
+    const commission = Math.round(totalInvAmount * 0.10);
+    return {
+      id: r.id,
+      referred_username: r.username,
+      referred_phone: r.phone,
+      joined_at: r.created_at,
+      total_deposits: r.total_deposits || 0,
+      commission_earned_rs: commission,
+      level: 1,
+      status: totalInvAmount > 0 ? ('Active' as const) : ('Pending' as const),
+    };
   });
-
-  const referralList = [
-    ...l1Members.map((r) => {
-      const totalInvAmount = getUserInvestedAmount(r);
-      const commission = Math.round(totalInvAmount * 0.10);
-      return {
-        id: r.id,
-        referred_username: r.username,
-        referred_phone: r.phone,
-        joined_at: r.created_at,
-        total_deposits: r.total_deposits || 0,
-        commission_earned_rs: commission,
-        level: 1,
-        status: totalInvAmount > 0 ? ('Active' as const) : ('Pending' as const),
-      };
-    }),
-    ...l2Members.map((r) => {
-      const totalInvAmount = getUserInvestedAmount(r);
-      const commission = Math.round(totalInvAmount * 0.05);
-      return {
-        id: r.id,
-        referred_username: r.username,
-        referred_phone: r.phone,
-        joined_at: r.created_at,
-        total_deposits: r.total_deposits || 0,
-        commission_earned_rs: commission,
-        level: 2,
-        status: totalInvAmount > 0 ? ('Active' as const) : ('Pending' as const),
-      };
-    }),
-  ];
 
   const totalReferralEarnings = referralList.reduce((sum, r) => sum + r.commission_earned_rs, 0);
 
@@ -1098,7 +1099,7 @@ app.post('/api/client/invest', (req, res) => {
 
   user.wallet_balance -= pkg.price_rs;
 
-  // Credit referral commission to Level 1 (10%) and Level 2 (5%) inviters when a user buys an investment plan
+  // Credit referral commission to Level 1 direct inviter ONLY (10%) when a user buys an investment plan
   const l1Inviter = findInviter(user.referred_by);
   if (l1Inviter) {
     const l1Bonus = Math.round(pkg.price_rs * 0.10); // 10% for Level 1
@@ -1107,15 +1108,6 @@ app.post('/api/client/invest', (req, res) => {
     user.first_investment_bonus_paid = true;
     syncUserToSupabase(l1Inviter).catch(() => {});
     console.log(`[LEVEL 1 BONUS] Inviter ${l1Inviter.username} credited 10% (RS ${l1Bonus}) for ${user.username}'s plan purchase (${pkg.name}).`);
-
-    const l2Inviter = findInviter(l1Inviter.referred_by);
-    if (l2Inviter) {
-      const l2Bonus = Math.round(pkg.price_rs * 0.05); // 5% for Level 2
-      l2Inviter.wallet_balance += l2Bonus;
-      l2Inviter.total_profit_earned = (l2Inviter.total_profit_earned || 0) + l2Bonus;
-      syncUserToSupabase(l2Inviter).catch(() => {});
-      console.log(`[LEVEL 2 BONUS] Level 2 Inviter ${l2Inviter.username} credited 5% (RS ${l2Bonus}) for ${user.username}'s plan purchase (${pkg.name}).`);
-    }
   }
 
   const newInv: InvestmentRecord = {
@@ -1131,6 +1123,7 @@ app.post('/api/client/invest', (req, res) => {
   investments.push(newInv);
   saveDatabase();
   syncUserToSupabase(user);
+  syncInvestmentToSupabase(newInv).catch(() => {});
 
   res.json({
     message: `Successfully purchased ${pkg.name}! Daily profit of RS ${pkg.daily_return_rs} activated.`,
