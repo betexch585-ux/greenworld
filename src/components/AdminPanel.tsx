@@ -72,10 +72,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   // Local state for Owner Settings form
   const [settingsForm, setSettingsForm] = useState<OwnerSettings>({ ...ownerSettings });
+  const [isFormDirty, setIsFormDirty] = useState(false);
 
   useEffect(() => {
-    setSettingsForm({ ...ownerSettings });
-  }, [ownerSettings]);
+    if (!isFormDirty) {
+      setSettingsForm({ ...ownerSettings });
+    }
+  }, [ownerSettings, isFormDirty]);
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState<{
@@ -98,6 +101,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const handleSettingsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveOwnerSettings(settingsForm);
+    setIsFormDirty(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
   };
@@ -661,14 +665,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
       {/* SECTION 3: OWNER PAYMENT SETTINGS CARD */}
       <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
-        <div className="p-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 bg-slate-50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-amber-600" /> Owner Payment Destination Settings
+              <Building2 className="w-5 h-5 text-amber-600" /> Owner Payment Destination &amp; Deposit Options
             </h3>
             <p className="text-xs text-slate-500">
-              Update official Bank, EasyPaisa, &amp; JazzCash accounts. Updates appear live on Deposit Modal!
+              Edit official Bank, EasyPaisa, &amp; JazzCash details below. All updates reflect live in real-time on the Client Deposit Portal!
             </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+              3 Active Deposit Options (Bank, EasyPaisa, JazzCash)
+            </span>
           </div>
         </div>
 
@@ -683,9 +692,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Bank Settings */}
             <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-                <Building2 className="w-4 h-4" /> Bank Account Settings
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                  <Building2 className="w-4 h-4" /> Deposit Option 1: Direct Bank Transfer
+                </h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                  Active Channel
+                </span>
+              </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Bank Name</label>
@@ -693,8 +707,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="text"
                   required
                   value={settingsForm.bank_name}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, bank_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, bank_name: e.target.value });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                 />
               </div>
 
@@ -704,8 +721,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="text"
                   required
                   value={settingsForm.account_title}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, account_title: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, account_title: e.target.value });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                 />
               </div>
 
@@ -715,17 +735,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   type="text"
                   required
                   value={settingsForm.iban_account}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, iban_account: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, iban_account: e.target.value });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 font-medium"
                 />
               </div>
             </div>
 
             {/* Mobile Wallet Settings */}
             <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-                <Smartphone className="w-4 h-4" /> EasyPaisa &amp; JazzCash Settings
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                  <Smartphone className="w-4 h-4" /> Deposit Options 2 &amp; 3: EasyPaisa &amp; JazzCash
+                </h4>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                  Active Channels
+                </span>
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -734,8 +762,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     required
                     value={settingsForm.easypaisa_number}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, easypaisa_number: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, easypaisa_number: e.target.value });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 font-medium"
                   />
                 </div>
                 <div>
@@ -744,8 +775,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     required
                     value={settingsForm.easypaisa_name}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, easypaisa_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, easypaisa_name: e.target.value });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                   />
                 </div>
               </div>
@@ -757,8 +791,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     required
                     value={settingsForm.jazzcash_number}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, jazzcash_number: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, jazzcash_number: e.target.value });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 font-medium"
                   />
                 </div>
                 <div>
@@ -767,8 +804,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     type="text"
                     required
                     value={settingsForm.jazzcash_name}
-                    onChange={(e) => setSettingsForm({ ...settingsForm, jazzcash_name: e.target.value })}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, jazzcash_name: e.target.value });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                   />
                 </div>
               </div>
@@ -778,8 +818,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <textarea
                   rows={2}
                   value={settingsForm.deposit_instructions}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, deposit_instructions: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, deposit_instructions: e.target.value });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                 />
               </div>
 
@@ -792,8 +835,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   required
                   placeholder="e.g. +923008829102"
                   value={settingsForm.whatsapp_number || ''}
-                  onChange={(e) => setSettingsForm({ ...settingsForm, whatsapp_number: e.target.value })}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, whatsapp_number: e.target.value });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 font-medium"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
                   Clients clicking the WhatsApp Support button on the client portal will directly open a chat with this number.

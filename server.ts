@@ -1253,27 +1253,17 @@ app.get('/api/admin/settings', (req, res) => {
 
 // Admin Update Owner Settings
 app.post('/api/admin/settings', (req, res) => {
-  const {
-    bank_name,
-    account_title,
-    iban_account,
-    easypaisa_number,
-    easypaisa_name,
-    jazzcash_number,
-    jazzcash_name,
-    deposit_instructions,
-    whatsapp_number,
-  } = req.body;
+  const body = req.body || {};
 
-  if (bank_name) ownerSettings.bank_name = bank_name;
-  if (account_title) ownerSettings.account_title = account_title;
-  if (iban_account) ownerSettings.iban_account = iban_account;
-  if (easypaisa_number) ownerSettings.easypaisa_number = easypaisa_number;
-  if (easypaisa_name) ownerSettings.easypaisa_name = easypaisa_name;
-  if (jazzcash_number) ownerSettings.jazzcash_number = jazzcash_number;
-  if (jazzcash_name) ownerSettings.jazzcash_name = jazzcash_name;
-  if (deposit_instructions !== undefined) ownerSettings.deposit_instructions = deposit_instructions;
-  if (whatsapp_number !== undefined) ownerSettings.whatsapp_number = whatsapp_number;
+  if (body.bank_name !== undefined) ownerSettings.bank_name = body.bank_name;
+  if (body.account_title !== undefined) ownerSettings.account_title = body.account_title;
+  if (body.iban_account !== undefined) ownerSettings.iban_account = body.iban_account;
+  if (body.easypaisa_number !== undefined) ownerSettings.easypaisa_number = body.easypaisa_number;
+  if (body.easypaisa_name !== undefined) ownerSettings.easypaisa_name = body.easypaisa_name;
+  if (body.jazzcash_number !== undefined) ownerSettings.jazzcash_number = body.jazzcash_number;
+  if (body.jazzcash_name !== undefined) ownerSettings.jazzcash_name = body.jazzcash_name;
+  if (body.deposit_instructions !== undefined) ownerSettings.deposit_instructions = body.deposit_instructions;
+  if (body.whatsapp_number !== undefined) ownerSettings.whatsapp_number = body.whatsapp_number;
 
   saveDatabase();
 
