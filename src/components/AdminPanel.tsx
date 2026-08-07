@@ -73,6 +73,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // Local state for Owner Settings form
   const [settingsForm, setSettingsForm] = useState<OwnerSettings>({ ...ownerSettings });
   const [isFormDirty, setIsFormDirty] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   useEffect(() => {
     if (!isFormDirty) {
@@ -98,12 +99,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // Liquidity Trend Chart Timeframe State
   const [chartDays, setChartDays] = useState<7 | 14 | 30>(30);
 
-  const handleSettingsSubmit = (e: React.FormEvent) => {
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSaveOwnerSettings(settingsForm);
-    setIsFormDirty(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    setIsSavingSettings(true);
+    try {
+      await onSaveOwnerSettings(settingsForm);
+      setIsFormDirty(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error saving owner settings:', err);
+    } finally {
+      setIsSavingSettings(false);
+    }
   };
 
   const filteredUsers = usersList.filter(
@@ -850,9 +858,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+            disabled={isSavingSettings}
+            className="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Save className="w-4 h-4" /> Save &amp; Update Payment Destination Details
+            {isSavingSettings ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Saving Live Payment Settings...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save &amp; Update Payment Destination Details</span>
+              </>
+            )}
           </button>
         </form>
       </div>

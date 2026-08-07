@@ -201,6 +201,7 @@ export default function App() {
 
     const interval = setInterval(() => {
       fetchAdminData();
+      fetchPublicSettings();
       const client = localStorage.getItem('gw_active_client_id');
       if (client) {
         fetchUserProfile(client);
@@ -209,6 +210,20 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const fetchPublicSettings = async () => {
+    try {
+      const res = await fetch('/api/public/packages');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.settings) {
+          setOwnerSettings(data.settings);
+        }
+      }
+    } catch (e) {
+      console.warn('[Fetch Public Settings Error]:', e);
+    }
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
