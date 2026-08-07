@@ -36,23 +36,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [calcAmount, setCalcAmount] = useState<number>(5000);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  // ROI calculations
-  const dailyReturnPercent = 0.05; // 5%
+  // ROI calculations based on package pricing or tier ratio
+  const matchingPkg = solarPackages.find((p) => p.price_rs === calcAmount) ||
+    solarPackages.find((p) => p.price_rs <= calcAmount) ||
+    solarPackages[0];
+
   const durationDays = 15;
-  const dailyProfitRs = Math.round(calcAmount * dailyReturnPercent);
+  const dailyProfitRs = matchingPkg
+    ? (calcAmount === matchingPkg.price_rs
+        ? matchingPkg.daily_return_rs
+        : Math.round(calcAmount * (matchingPkg.daily_return_percent / 100)))
+    : Math.round(calcAmount * 0.05);
+
   const totalProfitRs = dailyProfitRs * durationDays;
   const grandTotalRs = calcAmount + totalProfitRs;
 
-  const quickAmounts = [1000, 3000, 5000, 10000, 20000, 50000];
+  const quickAmounts = [1000, 2500, 5000, 10000, 25000, 50000];
 
   const faqs = [
     {
       q: 'How does GreenWorld Solar generate daily profits?',
-      a: 'GreenWorld operates commercial-grade solar micro-grids across Pakistan. Clean energy produced by our solar arrays is sold into the grid and commercial consumers. Returns from electricity sales are distributed proportionally (5% daily) to package investors.',
+      a: 'GreenWorld operates commercial-grade solar micro-grids across Pakistan. Clean energy produced by our solar arrays is sold into the grid and commercial consumers. Returns from electricity sales are distributed proportionally according to package investment tiers to investors.',
     },
     {
       q: 'When do I receive my investment principal back?',
-      a: 'Your original investment principal is 100% returned to your wallet balance automatically after the 15-day package term completes, alongside your daily 5% earnings.',
+      a: 'Your original investment principal is 100% returned to your wallet balance automatically after the 15-day package term completes, alongside your daily package earnings.',
     },
     {
       q: 'How fast are EasyPaisa, JazzCash & Bank withdrawals processed?',
@@ -115,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-bold tracking-wide shadow-xs">
               <Sparkles className="w-4 h-4 text-amber-400 animate-spin-slow" />
-              <span>Clean Energy • Guaranteed 5% Daily Returns</span>
+              <span>Clean Energy • Guaranteed Daily Package Returns</span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight">
@@ -124,7 +132,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </h1>
 
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
-              Join Pakistan's premier solar investment network. Invest in clean energy packages starting from just <strong className="text-white">RS 1,000</strong> and earn <strong className="text-amber-300">5% daily profit</strong> credited every 24 hours with full principal return after 15 days.
+              Join Pakistan's premier solar investment network. Invest in clean energy packages starting from just <strong className="text-white">RS 1,000</strong> and earn <strong className="text-amber-300">daily profits</strong> credited every 24 hours with full principal return after 15 days.
             </p>
 
             {/* CTAs */}
@@ -261,9 +269,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <TrendingUp className="w-6 h-6 text-emerald-600" />
             </div>
             <span className="absolute top-4 right-4 text-2xl font-black text-slate-100 font-mono">03</span>
-            <h3 className="text-base font-extrabold text-slate-900">5% Daily Yield</h3>
+            <h3 className="text-base font-extrabold text-slate-900">Daily Package Yield</h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              Your wallet receives 5% daily profit automatically every 24 hours for 15 days, reflecting clean power sales revenue.
+              Your wallet receives daily profits automatically every 24 hours according to your chosen package for 15 days.
             </p>
           </div>
 
@@ -342,7 +350,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60">
                 <span className="text-[10px] text-slate-400 font-bold block">Daily Profit Rate</span>
-                <span className="text-base font-black font-mono text-emerald-400">5% per Day</span>
+                <span className="text-base font-black font-mono text-emerald-400">
+                  {matchingPkg ? `${matchingPkg.daily_return_percent}% per Day` : 'Package Yield'}
+                </span>
               </div>
               <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60">
                 <span className="text-[10px] text-slate-400 font-bold block">Investment Term</span>
@@ -415,7 +425,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     {pkg.name}
                   </span>
                   <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
-                    5% Daily Yield
+                    {pkg.daily_return_percent}% Daily Yield
                   </span>
                 </div>
 

@@ -210,7 +210,7 @@ async function syncUserToSupabase(user: UserRecord) {
       phone: user.phone,
       referral_code: user.referral_code,
       referred_by: user.referred_by || null,
-      wallet_balance: user.wallet_balance || 0,
+      wallet_balance: typeof user.wallet_balance === 'number' ? user.wallet_balance : 0,
       total_deposits: user.total_deposits || 0,
       total_withdrawals: user.total_withdrawals || 0,
       daily_profit: user.daily_profit || 0,
@@ -237,14 +237,14 @@ async function syncUserToSupabase(user: UserRecord) {
         console.log(`[Supabase Sync] User ${user.username} synced via fallback.`);
       }
     } else {
-      console.log(`[Supabase Sync] User ${user.username} (${user.id}) successfully synced to Supabase.`);
+      console.log(`[Supabase Sync] User ${user.username} (${user.id}) successfully synced to Supabase. Wallet: RS ${user.wallet_balance}`);
     }
   } catch (err: any) {
     console.warn('[Supabase Sync Exception]:', err?.message);
   }
 }
 
-// Sync investment record to Supabase in realtime
+// Sync investment record to Supabase in realtime using correct Supabase columns
 async function syncInvestmentToSupabase(inv: InvestmentRecord) {
   try {
     const payload = {
@@ -252,18 +252,72 @@ async function syncInvestmentToSupabase(inv: InvestmentRecord) {
       user_id: inv.user_id,
       package_id: inv.package_id,
       package_name: inv.package_name,
-      amount_rs: inv.amount_rs,
-      daily_return_rs: inv.daily_return_rs,
-      purchased_at: inv.purchased_at,
+      invested_amount: inv.amount_rs,
+      daily_return: inv.daily_return_rs,
+      duration_days: 15,
+      days_remaining: 15,
+      status: 'active',
+      created_at: inv.purchased_at || new Date().toISOString(),
     };
     const { error } = await supabase.from('investments').upsert([payload], { onConflict: 'id' });
     if (error) {
       console.warn('[Supabase Investment Sync Warning]:', error.message);
     } else {
-      console.log(`[Supabase Sync] Investment ${inv.id} (${inv.package_name}) synced to Supabase.`);
+      console.log(`[Supabase Sync] Investment ${inv.id} (${inv.package_name} - RS ${inv.amount_rs}) synced to Supabase.`);
     }
   } catch (err: any) {
     console.warn('[Supabase Investment Sync Exception]:', err?.message);
+  }
+}
+
+// Sync deposit record to Supabase in realtime
+async function syncDepositToSupabase(dep: DepositRecord) {
+  try {
+    const payload = {
+      id: dep.id,
+      user_id: dep.user_id,
+      username: dep.username || '',
+      amount_rs: dep.amount,
+      payment_method: dep.payment_method || 'Bank Transfer',
+      proof_screenshot: dep.screenshot_url || '',
+      sender_account: dep.phone || '',
+      transaction_id: dep.id,
+      status: dep.status || 'PENDING',
+      created_at: dep.created_at || new Date().toISOString(),
+    };
+    const { error } = await supabase.from('deposits').upsert([payload], { onConflict: 'id' });
+    if (error) {
+      console.warn('[Supabase Deposit Sync Warning]:', error.message);
+    } else {
+      console.log(`[Supabase Sync] Deposit ${dep.id} (RS ${dep.amount}) synced to Supabase.`);
+    }
+  } catch (err: any) {
+    console.warn('[Supabase Deposit Sync Exception]:', err?.message);
+  }
+}
+
+// Sync withdrawal record to Supabase in realtime
+async function syncWithdrawalToSupabase(wit: WithdrawalRecord) {
+  try {
+    const payload = {
+      id: wit.id,
+      user_id: wit.user_id,
+      username: wit.username || '',
+      amount_rs: wit.amount,
+      payment_method: wit.bank_name || 'Bank Transfer',
+      account_number: wit.account_number || '',
+      account_title: wit.account_holder || '',
+      status: wit.status || 'PENDING',
+      created_at: wit.created_at || new Date().toISOString(),
+    };
+    const { error } = await supabase.from('withdrawals').upsert([payload], { onConflict: 'id' });
+    if (error) {
+      console.warn('[Supabase Withdrawal Sync Warning]:', error.message);
+    } else {
+      console.log(`[Supabase Sync] Withdrawal ${wit.id} (RS ${wit.amount}) synced to Supabase.`);
+    }
+  } catch (err: any) {
+    console.warn('[Supabase Withdrawal Sync Exception]:', err?.message);
   }
 }
 
@@ -297,18 +351,18 @@ async function syncFromSupabase() {
 
         if (existingIndex >= 0) {
           const localU = users[existingIndex];
-          // Update existing user with Supabase state safely without overwriting local financial progress
+          // Update existing user with Supabase state safely
           users[existingIndex] = {
             ...localU,
             full_name: sbUser.full_name || localU.full_name,
             username: sbUser.username || localU.username,
             password: sbUser.password || localU.password || 'Client1234.',
             phone: sbUser.phone || localU.phone,
-            wallet_balance: typeof sbUser.wallet_balance === 'number' ? Math.max(localU.wallet_balance || 0, sbUser.wallet_balance) : localU.wallet_balance,
-            total_deposits: typeof sbUser.total_deposits === 'number' ? Math.max(localU.total_deposits || 0, sbUser.total_deposits) : localU.total_deposits,
-            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? Math.max(localU.total_withdrawals || 0, sbUser.total_withdrawals) : localU.total_withdrawals,
-            daily_profit: typeof sbUser.daily_profit === 'number' ? Math.max(localU.daily_profit || 0, sbUser.daily_profit) : localU.daily_profit,
-            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? Math.max(localU.total_profit_earned || 0, sbUser.total_profit_earned) : localU.total_profit_earned,
+            wallet_balance: typeof sbUser.wallet_balance === 'number' ? sbUser.wallet_balance : localU.wallet_balance,
+            total_deposits: typeof sbUser.total_deposits === 'number' ? sbUser.total_deposits : localU.total_deposits,
+            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? sbUser.total_withdrawals : localU.total_withdrawals,
+            daily_profit: typeof sbUser.daily_profit === 'number' ? sbUser.daily_profit : localU.daily_profit,
+            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? sbUser.total_profit_earned : localU.total_profit_earned,
             role: sbUser.role || localU.role || 'client',
             referral_code: sbUser.referral_code || localU.referral_code,
             referred_by: (localU.referred_by && localU.referred_by !== 'undefined') ? localU.referred_by : (sbUser.referred_by && sbUser.referred_by !== 'undefined' ? sbUser.referred_by : undefined),
@@ -343,21 +397,25 @@ async function syncFromSupabase() {
         users = users.filter((u) => !['user-1', 'user-2', 'user-3'].includes(u.id));
       }
 
-      // Restore active investments from Supabase if available
+      // Restore active investments from Supabase using correct column mapping
       try {
         const { data: sbInvs, error: invErr } = await supabase.from('investments').select('*');
         if (!invErr && Array.isArray(sbInvs) && sbInvs.length > 0) {
           for (const sbInv of sbInvs) {
-            if (!investments.some((i) => i.id === sbInv.id)) {
-              investments.push({
-                id: sbInv.id,
-                user_id: sbInv.user_id,
-                package_id: sbInv.package_id,
-                package_name: sbInv.package_name,
-                amount_rs: Number(sbInv.amount_rs) || 0,
-                daily_return_rs: Number(sbInv.daily_return_rs) || 0,
-                purchased_at: sbInv.purchased_at || new Date().toISOString(),
-              });
+            const idx = investments.findIndex((i) => i.id === sbInv.id);
+            const mappedInv: InvestmentRecord = {
+              id: sbInv.id,
+              user_id: sbInv.user_id,
+              package_id: sbInv.package_id || 'pkg-1',
+              package_name: sbInv.package_name || 'Solar Package',
+              amount_rs: Number(sbInv.invested_amount) || Number(sbInv.amount_rs) || 0,
+              daily_return_rs: Number(sbInv.daily_return) || Number(sbInv.daily_return_rs) || 0,
+              purchased_at: sbInv.created_at || sbInv.purchased_at || new Date().toISOString(),
+            };
+            if (idx >= 0) {
+              investments[idx] = mappedInv;
+            } else {
+              investments.push(mappedInv);
             }
           }
         }
@@ -365,8 +423,55 @@ async function syncFromSupabase() {
         console.warn('[Supabase Investment Sync Exception]:', invEx);
       }
 
+      // Restore deposits from Supabase
+      try {
+        const { data: sbDeps, error: depErr } = await supabase.from('deposits').select('*');
+        if (!depErr && Array.isArray(sbDeps) && sbDeps.length > 0) {
+          for (const sbDep of sbDeps) {
+            const idx = deposits.findIndex((d) => d.id === sbDep.id);
+            const mappedDep: DepositRecord = {
+              id: sbDep.id,
+              user_id: sbDep.user_id,
+              username: sbDep.username || '',
+              phone: sbDep.sender_account || '',
+              amount: Number(sbDep.amount_rs) || Number(sbDep.amount) || 0,
+              payment_method: sbDep.payment_method || 'Bank Transfer',
+              screenshot_url: sbDep.proof_screenshot || '',
+              status: sbDep.status || 'PENDING',
+              created_at: sbDep.created_at || new Date().toISOString(),
+            };
+            if (idx >= 0) deposits[idx] = mappedDep;
+            else deposits.push(mappedDep);
+          }
+        }
+      } catch (depEx) {}
+
+      // Restore withdrawals from Supabase
+      try {
+        const { data: sbWits, error: witErr } = await supabase.from('withdrawals').select('*');
+        if (!witErr && Array.isArray(sbWits) && sbWits.length > 0) {
+          for (const sbWit of sbWits) {
+            const idx = withdrawals.findIndex((w) => w.id === sbWit.id);
+            const mappedWit: WithdrawalRecord = {
+              id: sbWit.id,
+              user_id: sbWit.user_id,
+              username: sbWit.username || '',
+              phone: '',
+              amount: Number(sbWit.amount_rs) || Number(sbWit.amount) || 0,
+              bank_name: sbWit.payment_method || 'Bank Transfer',
+              account_holder: sbWit.account_title || '',
+              account_number: sbWit.account_number || '',
+              status: sbWit.status || 'PENDING',
+              created_at: sbWit.created_at || new Date().toISOString(),
+            };
+            if (idx >= 0) withdrawals[idx] = mappedWit;
+            else withdrawals.push(mappedWit);
+          }
+        }
+      } catch (witEx) {}
+
       saveDatabase();
-      console.log(`[Supabase Live Sync] Successfully synced ${sbUsers.length} records & ${investments.length} investments from Supabase.`);
+      console.log(`[Supabase Live Sync] Successfully synced ${sbUsers.length} users, ${investments.length} investments, ${deposits.length} deposits from Supabase.`);
     }
   } catch (err: any) {
     console.warn('[Supabase Sync From Catch]:', err?.message);
@@ -1021,6 +1126,7 @@ app.post('/api/client/deposit', (req, res, next) => {
 
     deposits.push(newDeposit);
     saveDatabase();
+    syncDepositToSupabase(newDeposit).catch(() => {});
 
     return res.json({
       message: 'Deposit proof submitted successfully! Awaiting owner admin approval.',
@@ -1074,6 +1180,7 @@ app.post('/api/client/withdraw', (req, res) => {
 
   withdrawals.push(newWithdrawal);
   saveDatabase();
+  syncWithdrawalToSupabase(newWithdrawal).catch(() => {});
 
   res.json({
     message: 'Withdrawal request submitted! Payout will be sent to your bank/account upon admin verification.',
@@ -1122,7 +1229,7 @@ app.post('/api/client/invest', (req, res) => {
 
   investments.push(newInv);
   saveDatabase();
-  syncUserToSupabase(user);
+  syncUserToSupabase(user).catch(() => {});
   syncInvestmentToSupabase(newInv).catch(() => {});
 
   res.json({
@@ -1168,10 +1275,11 @@ app.post('/api/admin/approve-deposit', (req, res) => {
   if (user) {
     user.wallet_balance += deposit.amount;
     user.total_deposits += deposit.amount;
-    syncUserToSupabase(user);
+    syncUserToSupabase(user).catch(() => {});
   }
 
   saveDatabase();
+  syncDepositToSupabase(deposit).catch(() => {});
 
   res.json({
     message: `Deposit of RS ${deposit.amount.toLocaleString()} APPROVED and credited to ${deposit.username}'s wallet!`,
@@ -1191,6 +1299,7 @@ app.post('/api/admin/reject-deposit', (req, res) => {
 
   deposit.status = 'REJECTED';
   saveDatabase();
+  syncDepositToSupabase(deposit).catch(() => {});
   res.json({ message: 'Deposit request rejected.', deposit });
 });
 
@@ -1219,12 +1328,13 @@ app.post('/api/admin/mark-paid', (req, res) => {
       user.wallet_balance -= wd.amount;
     }
     user.total_withdrawals += wd.amount;
-    syncUserToSupabase(user);
+    syncUserToSupabase(user).catch(() => {});
   }
 
   wd.status = 'PAID';
   wd.processed_at = new Date().toISOString();
   saveDatabase();
+  syncWithdrawalToSupabase(wd).catch(() => {});
 
   res.json({
     message: `Withdrawal of RS ${wd.amount.toLocaleString()} marked as PAID to ${wd.account_holder} (${wd.bank_name}).`,
@@ -1243,6 +1353,7 @@ app.post('/api/admin/reject-withdrawal', (req, res) => {
 
   wd.status = 'REJECTED';
   saveDatabase();
+  syncWithdrawalToSupabase(wd).catch(() => {});
   res.json({ message: 'Withdrawal request rejected.', withdrawal: wd });
 });
 

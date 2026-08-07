@@ -474,7 +474,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                             </span>
                           </div>
                           <div className="flex justify-between items-center text-xs">
-                            <span className="text-slate-500 font-medium">Daily Yield (5%):</span>
+                            <span className="text-slate-500 font-medium">
+                              Daily Yield ({inv.daily_return_percent || 'Package'}%):
+                            </span>
                             <span className="font-mono font-bold text-emerald-600">
                               +RS {inv.daily_return_rs} / day
                             </span>
@@ -534,7 +536,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
 
                       <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 font-medium">
                         <span>Status: Actively Yielding</span>
-                        <span className="text-emerald-700 font-bold">5% Daily Credit</span>
+                        <span className="text-emerald-700 font-bold">
+                          {inv.daily_return_percent ? `${inv.daily_return_percent}% Daily Credit` : 'Daily Package Credit'}
+                        </span>
                       </div>
                     </div>
                   );

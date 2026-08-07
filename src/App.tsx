@@ -865,7 +865,7 @@ export default function App() {
           </div>
 
           <p className="text-[11px] text-slate-400 text-center">
-            Express Backend Port 3000 • Multer Deposit Proof Uploads • 5% Daily Yield Calculation • Pakistan (+92) Format
+            Express Backend Port 3000 • Multer Deposit Proof Uploads • Dynamic Package Yield Calculation • Pakistan (+92) Format
           </p>
 
           <div className="flex items-center gap-4 text-[11px] font-medium">

@@ -97,11 +97,11 @@
       "password": "Client1234.",
       "phone": "+92333811631",
       "referral_code": "GWLYHF",
-      "wallet_balance": 30017,
+      "wallet_balance": 30917,
       "total_deposits": 15000,
       "total_withdrawals": 0,
-      "daily_profit": 29517,
-      "total_profit_earned": 30017,
+      "daily_profit": 30417,
+      "total_profit_earned": 30917,
       "role": "client",
       "created_at": "2026-08-05T12:51:28.238+00:00"
     },
@@ -190,11 +190,11 @@
       "phone": "+923001122334",
       "referral_code": "GWAB8Q",
       "referred_by": "GWLYHF",
-      "wallet_balance": 21250,
+      "wallet_balance": 22750,
       "total_deposits": 10000,
       "total_withdrawals": 0,
-      "daily_profit": 16250,
-      "total_profit_earned": 16250,
+      "daily_profit": 17750,
+      "total_profit_earned": 17750,
       "role": "client",
       "created_at": "2026-08-05T22:03:44.383+00:00",
       "first_investment_bonus_paid": true
@@ -301,11 +301,11 @@
       "phone": "+923002222222",
       "referral_code": "GW3W5R",
       "referred_by": "GWGD8H",
-      "wallet_balance": 15100,
+      "wallet_balance": 16900,
       "total_deposits": 0,
       "total_withdrawals": 0,
-      "daily_profit": 14100,
-      "total_profit_earned": 15100,
+      "daily_profit": 15900,
+      "total_profit_earned": 16900,
       "role": "client",
       "created_at": "2026-08-05T23:14:50.172+00:00"
     },
@@ -317,11 +317,11 @@
       "phone": "+923003333333",
       "referral_code": "GWUNKF",
       "referred_by": "GW3W5R",
-      "wallet_balance": 38200,
+      "wallet_balance": 41800,
       "total_deposits": 10000,
       "total_withdrawals": 0,
-      "daily_profit": 28200,
-      "total_profit_earned": 28200,
+      "daily_profit": 31800,
+      "total_profit_earned": 31800,
       "role": "client",
       "created_at": "2026-08-05T23:14:50.175+00:00",
       "first_investment_bonus_paid": true
@@ -349,11 +349,11 @@
       "password": "badsha",
       "phone": "+923055246348",
       "referral_code": "GWPXHF",
-      "wallet_balance": 17350,
+      "wallet_balance": 20150,
       "total_deposits": 5000,
       "total_withdrawals": 0,
-      "daily_profit": 13850,
-      "total_profit_earned": 17350,
+      "daily_profit": 15650,
+      "total_profit_earned": 20150,
       "role": "client",
       "created_at": "2026-08-06T23:28:21.784+00:00"
     },
@@ -384,8 +384,8 @@
       "wallet_balance": 10000,
       "total_deposits": 20000,
       "total_withdrawals": 10600,
-      "daily_profit": 12700,
-      "total_profit_earned": 14700,
+      "daily_profit": 16300,
+      "total_profit_earned": 18300,
       "role": "client",
       "created_at": "2026-08-06T23:31:02.669+00:00"
     },
@@ -512,6 +512,15 @@
       "amount_rs": 10000,
       "daily_return_rs": 600,
       "purchased_at": "2026-08-05T23:14:50.205Z"
+    },
+    {
+      "id": "test-col-check",
+      "user_id": null,
+      "package_id": null,
+      "package_name": null,
+      "amount_rs": 0,
+      "daily_return_rs": 0,
+      "purchased_at": "2026-08-07T00:42:15.274Z"
     }
   ],
   "ownerSettings": {
@@ -525,5 +534,5 @@
     "deposit_instructions": "Deposit exact amount in RS and attach transaction screenshot.",
     "whatsapp_number": "+923001234567"
   },
-  "updated_at": "2026-08-07T00:31:36.766Z"
+  "updated_at": "2026-08-07T00:44:51.536Z"
 }
