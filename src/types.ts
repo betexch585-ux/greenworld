@@ -25,6 +25,7 @@ export interface Deposit {
   phone: string;
   amount: number; // in RS
   payment_method: string;
+  transaction_id?: string;
   screenshot_url: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   created_at: string;
@@ -55,6 +56,9 @@ export interface OwnerSettings {
   jazzcash_name: string;
   deposit_instructions: string;
   whatsapp_number: string;
+  bank_enabled?: boolean;
+  easypaisa_enabled?: boolean;
+  jazzcash_enabled?: boolean;
 }
 
 export interface SolarPackage {

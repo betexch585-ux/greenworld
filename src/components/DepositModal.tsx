@@ -19,14 +19,34 @@ export const DepositModal: React.FC<DepositModalProps> = ({
   onClose,
   onDepositSubmitted,
 }) => {
+  const isBankEnabled = ownerSettings.bank_enabled !== false;
+  const isEasyPaisaEnabled = ownerSettings.easypaisa_enabled !== false;
+  const isJazzCashEnabled = ownerSettings.jazzcash_enabled !== false;
+
+  const defaultMethod = isBankEnabled ? 'Bank' : isEasyPaisaEnabled ? 'EasyPaisa' : isJazzCashEnabled ? 'JazzCash' : 'Bank';
+
   const [amount, setAmount] = useState<string>('5000');
-  const [paymentMethod, setPaymentMethod] = useState<'Bank' | 'EasyPaisa' | 'JazzCash'>('Bank');
+  const [paymentMethod, setPaymentMethod] = useState<'Bank' | 'EasyPaisa' | 'JazzCash'>(defaultMethod);
+  const [transactionId, setTransactionId] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (paymentMethod === 'Bank' && !isBankEnabled) {
+      if (isEasyPaisaEnabled) setPaymentMethod('EasyPaisa');
+      else if (isJazzCashEnabled) setPaymentMethod('JazzCash');
+    } else if (paymentMethod === 'EasyPaisa' && !isEasyPaisaEnabled) {
+      if (isBankEnabled) setPaymentMethod('Bank');
+      else if (isJazzCashEnabled) setPaymentMethod('JazzCash');
+    } else if (paymentMethod === 'JazzCash' && !isJazzCashEnabled) {
+      if (isBankEnabled) setPaymentMethod('Bank');
+      else if (isEasyPaisaEnabled) setPaymentMethod('EasyPaisa');
+    }
+  }, [ownerSettings]);
 
   if (!isOpen) return null;
 
@@ -71,6 +91,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
             user_id: userId,
             amount: numericAmount,
             payment_method: paymentMethod === 'Bank' ? ownerSettings.bank_name : paymentMethod,
+            transaction_id: transactionId.trim(),
           }),
         });
 
@@ -98,6 +119,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
           phone: '+923000000000',
           amount: numericAmount,
           payment_method: paymentMethod === 'Bank' ? ownerSettings.bank_name : paymentMethod,
+          transaction_id: transactionId.trim(),
           screenshot_url: filePreview || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=400&q=80',
           status: 'PENDING',
           created_at: new Date().toISOString(),
@@ -163,44 +185,50 @@ export const DepositModal: React.FC<DepositModalProps> = ({
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-2">1. Select Payment Method</label>
             <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('Bank')}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                  paymentMethod === 'Bank'
-                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Building2 className="w-4 h-4" />
-                <span>Bank Transfer</span>
-              </button>
+              {isBankEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('Bank')}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+                    paymentMethod === 'Bank'
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>Bank Transfer</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('EasyPaisa')}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                  paymentMethod === 'EasyPaisa'
-                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>EasyPaisa</span>
-              </button>
+              {isEasyPaisaEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('EasyPaisa')}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+                    paymentMethod === 'EasyPaisa'
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>EasyPaisa</span>
+                </button>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('JazzCash')}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-                  paymentMethod === 'JazzCash'
-                    ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
-                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>JazzCash</span>
-              </button>
+              {isJazzCashEnabled && (
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('JazzCash')}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+                    paymentMethod === 'JazzCash'
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>JazzCash</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -295,10 +323,26 @@ export const DepositModal: React.FC<DepositModalProps> = ({
             </p>
           </div>
 
+          {/* Transaction ID Input */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              2. Transaction ID / Reference Number <span className="text-emerald-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. TRX98234102 or 0329182319"
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold font-mono text-slate-900 focus:outline-none focus:border-emerald-600"
+            />
+            <p className="text-[10px] text-slate-400 mt-1">Enter TRX ID from your Bank / EasyPaisa / JazzCash confirmation SMS or receipt.</p>
+          </div>
+
           {/* Amount Input */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              2. Deposit Amount in RS <span className="text-emerald-600">*</span>
+              3. Deposit Amount in RS <span className="text-emerald-600">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-xs font-bold text-emerald-700">RS</span>

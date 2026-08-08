@@ -70,6 +70,7 @@ export interface DepositRecord {
   phone: string;
   amount: number;
   payment_method: string;
+  transaction_id?: string;
   screenshot_url: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   created_at: string;
@@ -100,6 +101,9 @@ export interface OwnerSettingsRecord {
   jazzcash_name: string;
   deposit_instructions: string;
   whatsapp_number: string;
+  bank_enabled?: boolean;
+  easypaisa_enabled?: boolean;
+  jazzcash_enabled?: boolean;
 }
 
 export interface SolarPackageRecord {
@@ -138,8 +142,11 @@ let ownerSettings: OwnerSettingsRecord = {
   easypaisa_name: 'GreenWorld EasyPaisa Business',
   jazzcash_number: '0301-9982310',
   jazzcash_name: 'GreenWorld JazzCash Official',
-  deposit_instructions: 'Please send exact amount in RS to official payment destination.',
+  deposit_instructions: 'Please send exact amount in RS to official payment destination and enter your Transaction ID.',
   whatsapp_number: '+923008829102',
+  bank_enabled: true,
+  easypaisa_enabled: true,
+  jazzcash_enabled: true,
 };
 
 // Persistent File Store Configuration (/data/db.json)
@@ -281,7 +288,7 @@ async function syncDepositToSupabase(dep: DepositRecord) {
       payment_method: dep.payment_method || 'Bank Transfer',
       proof_screenshot: dep.screenshot_url || '',
       sender_account: dep.phone || '',
-      transaction_id: dep.id,
+      transaction_id: dep.transaction_id || dep.id,
       status: dep.status || 'PENDING',
       created_at: dep.created_at || new Date().toISOString(),
     };
@@ -351,18 +358,33 @@ async function syncFromSupabase() {
 
         if (existingIndex >= 0) {
           const localU = users[existingIndex];
-          // Update existing user with Supabase state safely
+          // Update existing user with Supabase state safely using Math.max to prevent rolling back fresh local yields
           users[existingIndex] = {
             ...localU,
             full_name: sbUser.full_name || localU.full_name,
             username: sbUser.username || localU.username,
             password: sbUser.password || localU.password || 'Client1234.',
             phone: sbUser.phone || localU.phone,
-            wallet_balance: typeof sbUser.wallet_balance === 'number' ? sbUser.wallet_balance : localU.wallet_balance,
-            total_deposits: typeof sbUser.total_deposits === 'number' ? sbUser.total_deposits : localU.total_deposits,
-            total_withdrawals: typeof sbUser.total_withdrawals === 'number' ? sbUser.total_withdrawals : localU.total_withdrawals,
-            daily_profit: typeof sbUser.daily_profit === 'number' ? sbUser.daily_profit : localU.daily_profit,
-            total_profit_earned: typeof sbUser.total_profit_earned === 'number' ? sbUser.total_profit_earned : localU.total_profit_earned,
+            wallet_balance: Math.max(
+              typeof localU.wallet_balance === 'number' ? localU.wallet_balance : 0,
+              typeof sbUser.wallet_balance === 'number' ? sbUser.wallet_balance : 0
+            ),
+            total_deposits: Math.max(
+              typeof localU.total_deposits === 'number' ? localU.total_deposits : 0,
+              typeof sbUser.total_deposits === 'number' ? sbUser.total_deposits : 0
+            ),
+            total_withdrawals: Math.max(
+              typeof localU.total_withdrawals === 'number' ? localU.total_withdrawals : 0,
+              typeof sbUser.total_withdrawals === 'number' ? sbUser.total_withdrawals : 0
+            ),
+            daily_profit: Math.max(
+              typeof localU.daily_profit === 'number' ? localU.daily_profit : 0,
+              typeof sbUser.daily_profit === 'number' ? sbUser.daily_profit : 0
+            ),
+            total_profit_earned: Math.max(
+              typeof localU.total_profit_earned === 'number' ? localU.total_profit_earned : 0,
+              typeof sbUser.total_profit_earned === 'number' ? sbUser.total_profit_earned : 0
+            ),
             role: sbUser.role || localU.role || 'client',
             referral_code: sbUser.referral_code || localU.referral_code,
             referred_by: (localU.referred_by && localU.referred_by !== 'undefined') ? localU.referred_by : (sbUser.referred_by && sbUser.referred_by !== 'undefined' ? sbUser.referred_by : undefined),
@@ -397,7 +419,7 @@ async function syncFromSupabase() {
         users = users.filter((u) => !['user-1', 'user-2', 'user-3'].includes(u.id));
       }
 
-      // Restore active investments from Supabase using correct column mapping
+      // Restore active investments from Supabase using correct column mapping & ensure local investments are preserved
       try {
         const { data: sbInvs, error: invErr } = await supabase.from('investments').select('*');
         if (!invErr && Array.isArray(sbInvs) && sbInvs.length > 0) {
@@ -418,6 +440,10 @@ async function syncFromSupabase() {
               investments.push(mappedInv);
             }
           }
+        }
+        // Sync any local unsynced investments back to Supabase
+        for (const localInv of investments) {
+          syncInvestmentToSupabase(localInv).catch(() => {});
         }
       } catch (invEx) {
         console.warn('[Supabase Investment Sync Exception]:', invEx);
@@ -1087,7 +1113,7 @@ app.post('/api/client/deposit', (req, res, next) => {
   });
 }, (req, res) => {
   try {
-    const { user_id, amount, payment_method } = req.body || {};
+    const { user_id, amount, payment_method, transaction_id } = req.body || {};
 
     if (!user_id || !amount) {
       return res.status(400).json({ error: 'User ID and Deposit Amount in RS are required.' });
@@ -1119,6 +1145,7 @@ app.post('/api/client/deposit', (req, res, next) => {
       phone: user.phone,
       amount: numericAmount,
       payment_method: payment_method || 'Bank Transfer',
+      transaction_id: transaction_id || req.body?.transaction_id || '',
       screenshot_url,
       status: 'PENDING',
       created_at: new Date().toISOString(),
@@ -1375,11 +1402,14 @@ app.post('/api/admin/settings', (req, res) => {
   if (body.jazzcash_name !== undefined) ownerSettings.jazzcash_name = body.jazzcash_name;
   if (body.deposit_instructions !== undefined) ownerSettings.deposit_instructions = body.deposit_instructions;
   if (body.whatsapp_number !== undefined) ownerSettings.whatsapp_number = body.whatsapp_number;
+  if (body.bank_enabled !== undefined) ownerSettings.bank_enabled = Boolean(body.bank_enabled);
+  if (body.easypaisa_enabled !== undefined) ownerSettings.easypaisa_enabled = Boolean(body.easypaisa_enabled);
+  if (body.jazzcash_enabled !== undefined) ownerSettings.jazzcash_enabled = Boolean(body.jazzcash_enabled);
 
   saveDatabase();
 
   res.json({
-    message: 'Owner payment account details & WhatsApp support number updated successfully! Changes reflected live on Client Site.',
+    message: 'Owner payment account details & channel toggles updated successfully! Changes reflected live on Client Site.',
     settings: ownerSettings,
   });
 });

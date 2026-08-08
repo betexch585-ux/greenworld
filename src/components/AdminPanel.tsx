@@ -544,6 +544,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   <th className="p-4">Phone (+92)</th>
                   <th className="p-4">Deposit Amount (RS)</th>
                   <th className="p-4">Payment Method</th>
+                  <th className="p-4">Transaction ID</th>
                   <th className="p-4">Receipt Proof</th>
                   <th className="p-4">Date</th>
                   <th className="p-4 text-center">Action</th>
@@ -558,6 +559,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       RS {dep.amount.toLocaleString()}
                     </td>
                     <td className="p-4 font-medium text-slate-700">{dep.payment_method}</td>
+                    <td className="p-4 font-mono font-bold text-amber-800 text-xs bg-amber-50/50 px-2.5 py-1 rounded-lg border border-amber-100/80">
+                      {dep.transaction_id || dep.id}
+                    </td>
                     <td className="p-4">
                       {dep.screenshot_url ? (
                         <button
@@ -750,6 +754,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 font-medium"
                 />
               </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-200">
+                <input
+                  type="checkbox"
+                  id="toggle_bank"
+                  checked={settingsForm.bank_enabled !== false}
+                  onChange={(e) => {
+                    setSettingsForm({ ...settingsForm, bank_enabled: e.target.checked });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <label htmlFor="toggle_bank" className="text-xs font-bold text-slate-800 cursor-pointer">
+                  Show Bank Transfer Channel to Clients
+                </label>
+              </div>
             </div>
 
             {/* Mobile Wallet Settings */}
@@ -818,6 +838,40 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     }}
                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600 font-medium"
                   />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 pt-2 border-t border-slate-200">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="toggle_easypaisa"
+                    checked={settingsForm.easypaisa_enabled !== false}
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, easypaisa_enabled: e.target.checked });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <label htmlFor="toggle_easypaisa" className="text-xs font-bold text-slate-800 cursor-pointer">
+                    Show EasyPaisa
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="toggle_jazzcash"
+                    checked={settingsForm.jazzcash_enabled !== false}
+                    onChange={(e) => {
+                      setSettingsForm({ ...settingsForm, jazzcash_enabled: e.target.checked });
+                      setIsFormDirty(true);
+                    }}
+                    className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <label htmlFor="toggle_jazzcash" className="text-xs font-bold text-slate-800 cursor-pointer">
+                    Show JazzCash
+                  </label>
                 </div>
               </div>
 
