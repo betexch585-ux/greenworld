@@ -414,6 +414,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
               </button>
             </div>
 
+            {/* Cycle Completion Note */}
+            <div className="p-3.5 bg-amber-50 border border-amber-200/70 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900 font-medium">
+              <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold">15-Day Maturity Cycle:</span> Each daily yield trigger increases your package Cycle Progress (e.g., Day 1/15, Day 2/15... Day 15/15). After 15 daily yields, your full principal investment capital is automatically refunded to your <span className="font-bold underline">Wallet Balance</span> so you can re-invest or withdraw!
+              </div>
+            </div>
+
             {userInvestments.length === 0 ? (
               <div className="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border border-slate-100 space-y-3">
                 <Sun className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto" />
@@ -434,20 +442,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                   const matchedPkg = solarPackages.find(
                     (p) => p.id === inv.package_id || p.name === inv.package_name
                   );
-                  const totalDays = matchedPkg ? matchedPkg.validity_days : 15;
+                  const totalDays = matchedPkg ? matchedPkg.validity_days : (inv.validity_days || 15);
+                  const currentYieldCount = typeof inv.yield_count === 'number' ? inv.yield_count : 0;
 
-                  const now = Date.now();
-                  const startMs = new Date(inv.purchased_at).getTime();
-                  const totalMs = totalDays * 24 * 60 * 60 * 1000;
-                  const elapsedMs = Math.max(0, now - startMs);
-
-                  const elapsedDays = Math.min(totalDays, Math.floor(elapsedMs / (1000 * 60 * 60 * 24)));
-                  const remainingDays = Math.max(0, totalDays - elapsedDays);
-
-                  const rawPercent = (elapsedMs / totalMs) * 100;
-                  const progressPercent = Math.min(100, Math.max(5, rawPercent));
+                  const currentCycleDay = Math.min(totalDays, currentYieldCount);
+                  const remainingDays = Math.max(0, totalDays - currentCycleDay);
+                  const progressPercent = Math.min(100, Math.max(5, (currentCycleDay / totalDays) * 100));
                   const estimatedTotalReturn = totalDays * inv.daily_return_rs;
-                  const currentCycleDay = Math.min(totalDays, elapsedDays + 1);
 
                   return (
                     <div

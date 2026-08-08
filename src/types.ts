@@ -81,6 +81,8 @@ export interface UserInvestment {
   amount_rs: number;
   daily_return_rs: number;
   purchased_at: string;
+  yield_count?: number;
+  validity_days?: number;
 }
 
 export interface ReferralRecord {

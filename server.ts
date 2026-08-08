@@ -126,6 +126,8 @@ export interface InvestmentRecord {
   amount_rs: number;
   daily_return_rs: number;
   purchased_at: string;
+  yield_count?: number;
+  validity_days?: number;
 }
 
 // In-Memory Database Stores
@@ -757,20 +759,26 @@ function initDatabase() {
 
 initDatabase();
 
-// Helper to check and automatically return invested capital to client wallet after 15 days
+// Helper to check and automatically return invested capital to client wallet after 15 days or 15 yield triggers
 function checkAndReturnExpiredInvestments() {
   const now = Date.now();
-  const FIFTEEN_DAYS_MS = 15 * 24 * 60 * 60 * 1000;
 
   investments = investments.filter((inv) => {
+    const pkg = solarPackages.find((p) => p.id === inv.package_id || p.name === inv.package_name);
+    const targetDays = pkg ? pkg.validity_days : (inv.validity_days || 15);
+    const currentYields = inv.yield_count || 0;
+
     const startMs = new Date(inv.purchased_at).getTime();
-    if (now - startMs >= FIFTEEN_DAYS_MS) {
+    const isTimeExpired = (now - startMs) >= (targetDays * 24 * 60 * 60 * 1000);
+
+    if (currentYields >= targetDays || isTimeExpired) {
       const user = users.find((u) => u.id === inv.user_id);
       if (user) {
         user.wallet_balance += inv.amount_rs;
         console.log(
-          `[AUTO RETURN] 15 days completed for ${inv.package_name}. Returned principal amount RS ${inv.amount_rs} to ${user.username}'s wallet.`
+          `[AUTO RETURN] 15-day cycle completed for ${inv.package_name} (${currentYields}/${targetDays} triggers). Returned principal RS ${inv.amount_rs} to ${user.username}'s wallet balance.`
         );
+        syncUserToSupabase(user).catch(() => {});
       }
       return false; // remove matured investment
     }
@@ -786,33 +794,59 @@ function getUserInvestedAmount(u: UserRecord): number {
 }
 
 function processDailyReturns() {
-  checkAndReturnExpiredInvestments();
   console.log('[CRON] Running Midnight Dynamic Package Yield + Chain Profit Calculation...');
   let totalDistributed = 0;
   let packageYieldCount = 0;
   let chainBonusCount = 0;
+  let maturedInvestmentsCount = 0;
 
   // 1. Process client individual active package yields (3% to 8% per package daily return)
   users.forEach((u) => {
     if (u.role === 'client') {
       const userInvs = investments.filter((inv) => inv.user_id === u.id);
-      const totalPackageYield = userInvs.reduce((sum, inv) => sum + inv.daily_return_rs, 0);
+      let totalPackageYield = 0;
 
-      // Profit is credited ONLY for active purchased package investments
-      const profitToCredit = totalPackageYield;
-
-      if (profitToCredit > 0) {
-        u.wallet_balance += profitToCredit;
-        u.daily_profit += profitToCredit;
-        u.total_profit_earned = (u.total_profit_earned || 0) + profitToCredit;
-        totalDistributed += profitToCredit;
+      userInvs.forEach((inv) => {
+        inv.yield_count = (inv.yield_count || 0) + 1;
+        totalPackageYield += inv.daily_return_rs;
         packageYieldCount++;
+      });
+
+      if (totalPackageYield > 0) {
+        u.wallet_balance += totalPackageYield;
+        u.daily_profit += totalPackageYield;
+        u.total_profit_earned = (u.total_profit_earned || 0) + totalPackageYield;
+        totalDistributed += totalPackageYield;
         syncUserToSupabase(u).catch(() => {});
       }
     }
   });
 
-  // 2. Process Level 1 Chain Profit System for Referrers
+  // 2. Check for completed 15-day cycles (yield_count >= validity_days) and return principal capital to client wallet
+  investments = investments.filter((inv) => {
+    const pkg = solarPackages.find((p) => p.id === inv.package_id || p.name === inv.package_name);
+    const targetDays = pkg ? pkg.validity_days : (inv.validity_days || 15);
+    const currentYields = inv.yield_count || 0;
+
+    const startMs = new Date(inv.purchased_at).getTime();
+    const isTimeExpired = (Date.now() - startMs) >= (targetDays * 24 * 60 * 60 * 1000);
+
+    if (currentYields >= targetDays || isTimeExpired) {
+      const user = users.find((u) => u.id === inv.user_id);
+      if (user) {
+        user.wallet_balance += inv.amount_rs;
+        maturedInvestmentsCount++;
+        console.log(
+          `[CYCLE MATURED] ${inv.package_name} completed ${currentYields}/${targetDays} yield triggers. Returned principal RS ${inv.amount_rs} to ${user.username}'s wallet!`
+        );
+        syncUserToSupabase(user).catch(() => {});
+      }
+      return false; // remove completed investment
+    }
+    return true; // keep active
+  });
+
+  // 3. Process Level 1 Chain Profit System for Referrers
   // Level 1: Referrer gets EXACT 3% of direct downline clients' active invested plan / deposit amounts
   users.forEach((referrer) => {
     if (referrer.role === 'client' || referrer.role === 'admin') {
@@ -844,8 +878,8 @@ function processDailyReturns() {
   });
 
   saveDatabase();
-  console.log(`[DAILY YIELD CRON] Total RS ${totalDistributed} credited across ${packageYieldCount} active investments & ${chainBonusCount} referrer chain bonuses.`);
-  return { totalDistributed, packageYieldCount, chainBonusCount };
+  console.log(`[DAILY YIELD CRON] Total RS ${totalDistributed} credited across ${packageYieldCount} active yields & ${chainBonusCount} referrer chain bonuses. ${maturedInvestmentsCount} investments completed 15 cycles & capital returned to wallet balance.`);
+  return { totalDistributed, packageYieldCount, chainBonusCount, maturedInvestmentsCount };
 }
 
 // Calculate milliseconds until next midnight
@@ -1255,6 +1289,8 @@ app.post('/api/client/invest', (req, res) => {
     amount_rs: pkg.price_rs,
     daily_return_rs: pkg.daily_return_rs,
     purchased_at: new Date().toISOString(),
+    yield_count: 0,
+    validity_days: pkg.validity_days || 15,
   };
 
   investments.push(newInv);
