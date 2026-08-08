@@ -443,7 +443,10 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({
                     (p) => p.id === inv.package_id || p.name === inv.package_name
                   );
                   const totalDays = matchedPkg ? matchedPkg.validity_days : (inv.validity_days || 15);
-                  const currentYieldCount = typeof inv.yield_count === 'number' ? inv.yield_count : 0;
+                  
+                  const daysPassed = Math.floor((Date.now() - new Date(inv.purchased_at).getTime()) / (1000 * 60 * 60 * 24));
+                  const storedYields = typeof inv.yield_count === 'number' ? inv.yield_count : 0;
+                  const currentYieldCount = Math.max(storedYields, Math.min(totalDays, daysPassed));
 
                   const currentCycleDay = Math.min(totalDays, currentYieldCount);
                   const remainingDays = Math.max(0, totalDays - currentCycleDay);

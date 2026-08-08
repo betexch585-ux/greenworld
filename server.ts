@@ -263,8 +263,10 @@ async function syncInvestmentToSupabase(inv: InvestmentRecord) {
       package_name: inv.package_name,
       invested_amount: inv.amount_rs,
       daily_return: inv.daily_return_rs,
-      duration_days: 15,
-      days_remaining: 15,
+      duration_days: inv.validity_days || 15,
+      days_remaining: Math.max(0, (inv.validity_days || 15) - (inv.yield_count || 0)),
+      yield_count: inv.yield_count || 0,
+      validity_days: inv.validity_days || 15,
       status: 'active',
       created_at: inv.purchased_at || new Date().toISOString(),
     };
@@ -272,7 +274,7 @@ async function syncInvestmentToSupabase(inv: InvestmentRecord) {
     if (error) {
       console.warn('[Supabase Investment Sync Warning]:', error.message);
     } else {
-      console.log(`[Supabase Sync] Investment ${inv.id} (${inv.package_name} - RS ${inv.amount_rs}) synced to Supabase.`);
+      console.log(`[Supabase Sync] Investment ${inv.id} (${inv.package_name} - RS ${inv.amount_rs}, Yield Count: ${inv.yield_count || 0}) synced to Supabase.`);
     }
   } catch (err: any) {
     console.warn('[Supabase Investment Sync Exception]:', err?.message);
@@ -426,7 +428,19 @@ async function syncFromSupabase() {
         const { data: sbInvs, error: invErr } = await supabase.from('investments').select('*');
         if (!invErr && Array.isArray(sbInvs) && sbInvs.length > 0) {
           for (const sbInv of sbInvs) {
+            if (sbInv.status === 'completed' || sbInv.status === 'matured') {
+              continue;
+            }
             const idx = investments.findIndex((i) => i.id === sbInv.id);
+            const existingLocal = idx >= 0 ? investments[idx] : null;
+
+            const sbYieldCount = Number(sbInv.yield_count);
+            const localYieldCount = existingLocal ? (existingLocal.yield_count || 0) : 0;
+            const finalYieldCount = !isNaN(sbYieldCount) ? Math.max(sbYieldCount, localYieldCount) : localYieldCount;
+
+            const sbValDays = Number(sbInv.validity_days || sbInv.duration_days);
+            const finalValDays = !isNaN(sbValDays) && sbValDays > 0 ? sbValDays : (existingLocal?.validity_days || 15);
+
             const mappedInv: InvestmentRecord = {
               id: sbInv.id,
               user_id: sbInv.user_id,
@@ -435,6 +449,8 @@ async function syncFromSupabase() {
               amount_rs: Number(sbInv.invested_amount) || Number(sbInv.amount_rs) || 0,
               daily_return_rs: Number(sbInv.daily_return) || Number(sbInv.daily_return_rs) || 0,
               purchased_at: sbInv.created_at || sbInv.purchased_at || new Date().toISOString(),
+              yield_count: finalYieldCount,
+              validity_days: finalValDays,
             };
             if (idx >= 0) {
               investments[idx] = mappedInv;
@@ -780,6 +796,7 @@ function checkAndReturnExpiredInvestments() {
         );
         syncUserToSupabase(user).catch(() => {});
       }
+      Promise.resolve(supabase.from('investments').update({ status: 'completed', days_remaining: 0 }).eq('id', inv.id)).catch(() => {});
       return false; // remove matured investment
     }
     return true; // keep active
@@ -810,6 +827,7 @@ function processDailyReturns() {
         inv.yield_count = (inv.yield_count || 0) + 1;
         totalPackageYield += inv.daily_return_rs;
         packageYieldCount++;
+        syncInvestmentToSupabase(inv).catch(() => {});
       });
 
       if (totalPackageYield > 0) {
@@ -841,6 +859,7 @@ function processDailyReturns() {
         );
         syncUserToSupabase(user).catch(() => {});
       }
+      Promise.resolve(supabase.from('investments').update({ status: 'completed', days_remaining: 0 }).eq('id', inv.id)).catch(() => {});
       return false; // remove completed investment
     }
     return true; // keep active
