@@ -1233,15 +1233,18 @@ app.post('/api/client/invest', (req, res) => {
 
   user.wallet_balance -= pkg.price_rs;
 
-  // Credit referral commission to Level 1 direct inviter ONLY (10%) when a user buys an investment plan
+  // Credit referral commission to Level 1 direct inviter ONLY (10%) on FIRST TIME investment purchase
+  const hasPriorInvestments = investments.some((inv) => inv.user_id === user.id);
+  const isFirstInvestment = !user.first_investment_bonus_paid && !hasPriorInvestments;
+
   const l1Inviter = findInviter(user.referred_by);
-  if (l1Inviter) {
-    const l1Bonus = Math.round(pkg.price_rs * 0.10); // 10% for Level 1
+  if (l1Inviter && isFirstInvestment) {
+    const l1Bonus = Math.round(pkg.price_rs * 0.10); // 10% for Level 1 on first investment
     l1Inviter.wallet_balance += l1Bonus;
     l1Inviter.total_profit_earned = (l1Inviter.total_profit_earned || 0) + l1Bonus;
     user.first_investment_bonus_paid = true;
     syncUserToSupabase(l1Inviter).catch(() => {});
-    console.log(`[LEVEL 1 BONUS] Inviter ${l1Inviter.username} credited 10% (RS ${l1Bonus}) for ${user.username}'s plan purchase (${pkg.name}).`);
+    console.log(`[LEVEL 1 FIRST INVESTMENT BONUS] Inviter ${l1Inviter.username} credited 10% (RS ${l1Bonus}) for ${user.username}'s FIRST investment plan (${pkg.name}).`);
   }
 
   const newInv: InvestmentRecord = {
